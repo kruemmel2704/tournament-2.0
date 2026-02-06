@@ -12,30 +12,32 @@ def handle_pick_ban_logic(match, selected_map):
     
     # Prüfen, ob Karte schon weg ist
     if selected_map in current_banned or selected_map in current_picked: 
-        return False
+        return False, "Karte bereits vergeben."
 
     # --- BAN LOGIK (2 Bans pro Team pro Phase) ---
+    # Wir schauen uns die GESAMT-Anzahl der Bans an, um den Status zu wechseln.
+    
     if match.state == 'ban_1_a':
         current_banned.append(selected_map)
-        # Erst wenn 2 Karten gebannt sind, wechselt der State
+        # Wenn 2 Karten gebannt sind (2 von A), ist B dran
         if len(current_banned) >= 2: match.state = 'ban_1_b'
         
     elif match.state == 'ban_1_b':
         current_banned.append(selected_map)
-        # 2 von A + 2 von B = 4 Karten total
+        # Wenn 4 Karten gebannt sind (2 von A + 2 von B), nächste Phase
         if len(current_banned) >= 4: match.state = 'ban_2_a'
         
     elif match.state == 'ban_2_a':
         current_banned.append(selected_map)
-        # 4 davor + 2 von A = 6 Karten total
+        # Wenn 6 Karten gebannt sind (4 davor + 2 von A), ist B dran
         if len(current_banned) >= 6: match.state = 'ban_2_b'
         
     elif match.state == 'ban_2_b':
         current_banned.append(selected_map)
-        # 6 davor + 2 von B = 8 Karten total -> Ab zum Pick
+        # Wenn 8 Karten gebannt sind (6 davor + 2 von B), geht es ans Picken
         if len(current_banned) >= 8: match.state = 'pick_a'
 
-    # --- PICK LOGIK (Auch hier: A pickt 2, dann B pickt 2) ---
+    # --- PICK LOGIK (A pickt 2, dann B pickt 2) ---
     elif match.state == 'pick_a':
         current_picked.append(selected_map)
         if len(current_picked) >= 2: match.state = 'pick_b'
@@ -48,7 +50,7 @@ def handle_pick_ban_logic(match, selected_map):
     # Speichern
     match.banned_maps = json.dumps(current_banned)
     match.picked_maps = json.dumps(current_picked)
-    return True
+    return True, "Erfolgreich."
 
 def advance_winner(match):
     if not match.next_match_id: return
@@ -67,8 +69,7 @@ def advance_winner(match):
 
 def handle_scoring_logic(match, form_data, user):
     try:
-        # Versuchen 5 Scores zu lesen (oder so viele wie gepickt wurden)
-        # Standard fallback auf 5 Maps falls Logik abweicht
+        # Versuchen Scores für 5 Maps zu lesen (Fallback-Größe)
         sa = [max(0, int(form_data.get(f'score_a_{i}',0))) for i in range(1, 6)]
         sb = [max(0, int(form_data.get(f'score_b_{i}',0))) for i in range(1, 6)]
     except: return
@@ -81,8 +82,10 @@ def handle_scoring_logic(match, form_data, user):
         
     isa = (user.username == match.team_a); isb = (user.username == match.team_b)
     if not (isa or isb): return
-    if isa: match.draft_a_scores = json.dumps({'a':sa, 'b':sb})
-    elif isb: match.draft_b_scores = json.dumps({'a':sa, 'b':sb})
+    
+    bundle = {'a':sa, 'b':sb}
+    if isa: match.draft_a_scores = json.dumps(bundle)
+    elif isb: match.draft_b_scores = json.dumps(bundle)
     
     if match.draft_a_scores and match.draft_b_scores:
         if match.draft_a_scores == match.draft_b_scores:
@@ -115,17 +118,22 @@ def create_tournament():
 def match_view(match_id):
     match = Match.query.get_or_404(match_id)
     active = match.team_a if match.state.endswith('_a') else (match.team_b if match.state.endswith('_b') else None)
+    
     if request.method == 'POST':
         if 'selected_map' in request.form and (current_user.is_admin or current_user.username == active):
-            if handle_pick_ban_logic(match, request.form.get('selected_map')):
+            success, msg = handle_pick_ban_logic(match, request.form.get('selected_map'))
+            if success:
                 db.session.commit()
             else:
-                flash("Karte bereits gewählt oder gebannt!", "error")
+                flash(msg, "error")
         elif 'submit_scores' in request.form:
             handle_scoring_logic(match, request.form, current_user); db.session.commit()
         elif 'lobby_code' in request.form:
             match.lobby_code = request.form.get('lobby_code'); db.session.commit()
+        
+        # Wichtig: Redirect zurück zur selben Seite, um Post-Resubmit zu verhindern
         return redirect(url_for('tournament.match_view', match_id=match.id))
+        
     return render_template('match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active)
 
 @tournament_bp.route('/archive_tournament/<int:t_id>', methods=['POST'])
