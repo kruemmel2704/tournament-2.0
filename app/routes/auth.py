@@ -24,7 +24,7 @@ def login():
         if user and user.password and check_password_hash(user.password, password):
             login_user(user)
             flash('Willkommen zurück.', 'success')
-            if user.is_clan_admin:
+            if getattr(user, 'is_clan_admin', False):
                 return redirect(url_for('main.clan_dashboard'))
             return redirect(url_for('main.dashboard'))
         
