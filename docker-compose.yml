@@ -8,15 +8,10 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # 1. Die Datenbank persistent speichern
-      # Achtung: Die Datei tournament.db muss auf dem Host existieren!
-      - ./tournament.db:/app/tournament.db
-      
-      # 2. Die Map-Bilder persistent speichern
-      # Pfad auf Host : Pfad im Container
-      - ./app/static/map_images:/app/app/static/map_images
+      # WICHTIG: Das hier sorgt für die Persistenz!
+      # Es spiegelt deinen kompletten Projektordner in den Container.
+      # Datenbank & Bilder landen also direkt auf deiner Festplatte.
+      - .:/app
     environment:
-      - FLASK_APP=run.py
-      - FLASK_ENV=production
-      # Zeitzone setzen (optional, aber gut für Logs)
-      - TZ=Europe/Berlin
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
