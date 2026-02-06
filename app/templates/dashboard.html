@@ -1,50 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-    /* PWA Grid für das Dashboard */
-    .dash-grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-        gap: 15px; 
-        margin-bottom: 30px; 
-    }
-    
-    /* Mobil: Untereinander statt nebeneinander */
-    @media (max-width: 768px) {
-        .dash-grid { grid-template-columns: 1fr !important; }
-    }
-
-    /* Card Styling */
-    .card-header { padding: 15px; background: #2a2a2a; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-    .card-header h3 { margin: 0; font-size: 1.1rem; color: #fff; }
-    
-    .item-list { list-style: none; padding: 0; margin: 0; }
-    .item-row { padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
-    .item-row:last-child { border-bottom: none; }
-    .item-row:active { background: #252525; } /* Touch Feedback */
-    
-    .create-btn { display: block; width: 100%; padding: 12px; text-align: center; background: #333; border: 1px dashed #555; color: #aaa; text-decoration: none; margin-top: 10px; border-radius: 4px; }
-    .create-btn:active { background: #3a3a3a; color: white; }
-
-    /* Icons */
-    .btn-icon { background: none; border: none; padding: 8px; font-size: 1.2rem; cursor: pointer; }
-</style>
-
 <div class="container">
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
         <div>
-            <h1 style="margin: 0; font-size: 1.8rem;">Dashboard</h1>
-            <small style="color: #888;">Willkommen, {{ current_user.username }}</small>
+            <h1 style="margin: 0; font-size: 2rem; letter-spacing: -1px;">Dashboard</h1>
+            <div style="color: var(--text-muted); margin-top: 5px;">Willkommen zurück, <strong style="color: #fff;">{{ current_user.username }}</strong></div>
         </div>
-        <div style="display: flex; gap: 5px;">
+        <div style="display: flex; gap: 10px;">
             {% if current_user.is_admin %}
-                <a href="{{ url_for('admin.users_manager') }}" class="btn-small" style="background: #e91e63;">👥 User</a>
-                <a href="{{ url_for('admin.maps_manager') }}" class="btn-small" style="background: #ff9800;">🗺️ Maps</a>
+                <a href="{{ url_for('admin.users_manager') }}" class="btn btn-secondary btn-small">👥 User</a>
+                <a href="{{ url_for('admin.maps_manager') }}" class="btn btn-secondary btn-small">🗺️ Maps</a>
             {% endif %}
             {% if current_user.clan_id %}
-                <a href="{{ url_for('main.clan_dashboard') }}" class="btn-small" style="background: #9c27b0;">🛡️ Clan</a>
+                <a href="{{ url_for('main.clan_dashboard') }}" class="btn btn-secondary btn-small">🛡️ Clan</a>
             {% endif %}
         </div>
     </div>
@@ -52,7 +22,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="card" style="padding: 15px; margin-bottom: 20px; border-left: 5px solid {{ '#4caf50' if category=='success' else '#f44336' }}; background: #222;">
+          <div class="card" style="padding: 15px; margin-bottom: 25px; border-left: 4px solid {{ 'var(--success)' if category=='success' else 'var(--primary)' }}; background: #252525;">
             {{ message }}
           </div>
         {% endfor %}
@@ -60,16 +30,16 @@
     {% endwith %}
 
     {% if current_user.is_mod %}
-    <div class="card" style="border-left: 5px solid #00bcd4; margin-bottom: 20px;">
-        <div class="card-header" style="background: #00bcd4; color: #000;">
-            <h3 style="color: #000;">🛡️ Mod Einstellungen</h3>
+    <div class="card" style="margin-bottom: 30px; border-color: var(--border-color);">
+        <div class="card-header">
+            <h3>🛡️ Moderator Einstellungen</h3>
         </div>
-        <div style="padding: 15px;">
-            <form action="{{ url_for('main.mod_change_password') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
-                <input type="password" name="current_password" placeholder="Aktuelles PW" required style="padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
-                <input type="password" name="new_password" placeholder="Neues PW" required style="padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
-                <input type="password" name="confirm_password" placeholder="Bestätigen" required style="padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
-                <button class="btn" style="background: #00bcd4; color: black; font-weight: bold;">Passwort ändern</button>
+        <div class="card-body">
+            <form action="{{ url_for('main.mod_change_password') }}" method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="password" name="current_password" placeholder="Aktuelles PW" required style="flex: 1; min-width: 150px;">
+                <input type="password" name="new_password" placeholder="Neues PW" required style="flex: 1; min-width: 150px;">
+                <input type="password" name="confirm_password" placeholder="Bestätigen" required style="flex: 1; min-width: 150px;">
+                <button class="btn btn-secondary">PW Ändern</button>
             </form>
         </div>
     </div>
@@ -78,119 +48,143 @@
     <div class="dash-grid">
         
         <div class="card">
-            <div class="card-header" style="border-left: 4px solid #f44336;"><h3>🏆 Turniere</h3></div>
+            <div class="card-header">
+                <h3>🏆 Turniere</h3>
+            </div>
             <ul class="item-list">
                 {% for t in active_tournaments %}
                 <li class="item-row">
-                    <a href="{{ url_for('tournament.match_view', match_id=t.matches[0].id) }}" style="color: white; text-decoration: none; font-weight: bold; flex: 1;">
+                    <a href="{{ url_for('tournament.match_view', match_id=t.matches[0].id) }}" style="font-weight: 600; flex: 1;">
                         {{ t.name }}
                     </a>
                     {% if current_user.is_admin %}
-                    <div style="display:flex; gap:5px;">
-                        <form action="{{ url_for('tournament.archive_tournament', t_id=t.id) }}" method="POST"><button class="btn-icon">📦</button></form>
-                        <form action="{{ url_for('tournament.delete_tournament', t_id=t.id) }}" method="POST" onsubmit="return confirm('Löschen?');"><button class="btn-icon" style="color:#f44336;">✕</button></form>
+                    <div style="display:flex; gap:2px;">
+                        <form action="{{ url_for('tournament.archive_tournament', t_id=t.id) }}" method="POST">
+                            <button class="btn-icon" title="Archivieren">📦</button>
+                        </form>
+                        <form action="{{ url_for('tournament.delete_tournament', t_id=t.id) }}" method="POST" onsubmit="return confirm('Wirklich löschen?');">
+                            <button class="btn-icon" style="color: var(--primary);" title="Löschen">✕</button>
+                        </form>
                     </div>
                     {% endif %}
                 </li>
                 {% else %}
-                <li class="item-row" style="color: #666; justify-content: center;">Keine aktiven Turniere</li>
+                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">Keine aktiven Turniere</li>
                 {% endfor %}
             </ul>
             {% if current_user.is_admin %}
-                <a href="{{ url_for('tournament.create_tournament') }}" class="create-btn">+ Neues Turnier</a>
+                <div class="card-body" style="padding-top: 0;">
+                    <a href="{{ url_for('tournament.create_tournament') }}" class="create-btn">+ Turnier erstellen</a>
+                </div>
             {% endif %}
         </div>
 
         <div class="card">
-            <div class="card-header" style="border-left: 4px solid #2196f3;"><h3>🎮 Cups</h3></div>
+            <div class="card-header">
+                <h3>🎮 Cups</h3>
+            </div>
             <ul class="item-list">
                 {% for c in active_cups %}
                 <li class="item-row">
-                    <a href="{{ url_for('cup.cup_details', cup_id=c.id) }}" style="color: white; text-decoration: none; font-weight: bold; flex: 1;">
+                    <a href="{{ url_for('cup.cup_details', cup_id=c.id) }}" style="font-weight: 600; flex: 1;">
                         {{ c.name }}
                     </a>
                     {% if current_user.is_admin %}
-                    <div style="display:flex; gap:5px;">
+                    <div style="display:flex; gap:2px;">
                         <form action="{{ url_for('cup.archive_cup', cup_id=c.id) }}" method="POST"><button class="btn-icon">📦</button></form>
-                        <form action="{{ url_for('cup.delete_cup', cup_id=c.id) }}" method="POST" onsubmit="return confirm('Löschen?');"><button class="btn-icon" style="color:#f44336;">✕</button></form>
+                        <form action="{{ url_for('cup.delete_cup', cup_id=c.id) }}" method="POST" onsubmit="return confirm('Löschen?');"><button class="btn-icon" style="color: var(--primary);">✕</button></form>
                     </div>
                     {% endif %}
                 </li>
                 {% else %}
-                <li class="item-row" style="color: #666; justify-content: center;">Keine aktiven Cups</li>
+                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">Keine aktiven Cups</li>
                 {% endfor %}
             </ul>
             {% if current_user.is_admin %}
-                <a href="{{ url_for('cup.create_cup') }}" class="create-btn">+ Neuer Cup</a>
+                <div class="card-body" style="padding-top: 0;">
+                    <a href="{{ url_for('cup.create_cup') }}" class="create-btn">+ Cup erstellen</a>
+                </div>
             {% endif %}
         </div>
 
         <div class="card">
-            <div class="card-header" style="border-left: 4px solid #4caf50;"><h3>📈 Ligen</h3></div>
+            <div class="card-header">
+                <h3>📈 Ligen</h3>
+            </div>
             <ul class="item-list">
                 {% for l in active_leagues %}
                 <li class="item-row">
-                    <a href="{{ url_for('league.league_details', league_id=l.id) }}" style="color: white; text-decoration: none; font-weight: bold; flex: 1;">
+                    <a href="{{ url_for('league.league_details', league_id=l.id) }}" style="font-weight: 600; flex: 1;">
                         {{ l.name }}
                     </a>
                     {% if current_user.is_admin %}
-                    <div style="display:flex; gap:5px;">
+                    <div style="display:flex; gap:2px;">
                         <form action="{{ url_for('league.archive_league', league_id=l.id) }}" method="POST"><button class="btn-icon">📦</button></form>
-                        <form action="{{ url_for('league.delete_league', league_id=l.id) }}" method="POST" onsubmit="return confirm('Löschen?');"><button class="btn-icon" style="color:#f44336;">✕</button></form>
+                        <form action="{{ url_for('league.delete_league', league_id=l.id) }}" method="POST" onsubmit="return confirm('Löschen?');"><button class="btn-icon" style="color: var(--primary);">✕</button></form>
                     </div>
                     {% endif %}
                 </li>
                 {% else %}
-                <li class="item-row" style="color: #666; justify-content: center;">Keine aktiven Ligen</li>
+                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">Keine aktiven Ligen</li>
                 {% endfor %}
             </ul>
             {% if current_user.is_admin %}
-                <a href="{{ url_for('league.create_league') }}" class="create-btn">+ Neue Liga</a>
+                <div class="card-body" style="padding-top: 0;">
+                    <a href="{{ url_for('league.create_league') }}" class="create-btn">+ Liga erstellen</a>
+                </div>
             {% endif %}
         </div>
 
-    </div>
-
-    {% if archived_tournaments or archived_cups or archived_leagues %}
-    <div class="card" style="opacity: 0.8; margin-top: 20px;">
-        <div class="card-header"><h3>📦 Archiv</h3></div>
-        <ul class="item-list">
-            {% for t in archived_tournaments %}
-                <li class="item-row"><span>🏆 {{ t.name }}</span> {% if current_user.is_admin %}<form action="{{ url_for('tournament.archive_tournament', t_id=t.id) }}" method="POST"><button class="btn-icon">🔄</button></form>{% endif %}</li>
-            {% endfor %}
-            {% for c in archived_cups %}
-                <li class="item-row"><span>🎮 {{ c.name }}</span> {% if current_user.is_admin %}<form action="{{ url_for('cup.archive_cup', cup_id=c.id) }}" method="POST"><button class="btn-icon">🔄</button></form>{% endif %}</li>
-            {% endfor %}
-            {% for l in archived_leagues %}
-                <li class="item-row"><span>📈 {{ l.name }}</span> {% if current_user.is_admin %}<form action="{{ url_for('league.archive_league', league_id=l.id) }}" method="POST"><button class="btn-icon">🔄</button></form>{% endif %}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-
-    {% if not current_user.is_admin and not current_user.is_mod %}
-    <div class="card" style="margin-top: 20px;">
-        <div class="card-header"><h3>👤 Mein Roster</h3></div>
-        <div style="padding: 15px;">
-            {% for m in current_user.team_members %}
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 10px 0;">
-                <span>{{ m.gamertag }} <small style="color:#888">({{ m.platform }})</small></span>
-                <form action="{{ url_for('main.delete_member', member_id=m.id) }}" method="POST"><button class="btn-icon" style="color:#f44336; font-size:1rem;">🗑️</button></form>
-            </div>
-            {% else %}
-            <p style="color:#666; text-align:center;">Noch keine Spieler.</p>
-            {% endfor %}
+    </div> {% if not current_user.is_admin and not current_user.is_mod %}
+    <div class="card">
+        <div class="card-header">
+            <h3>👤 Mein Roster</h3>
+        </div>
+        <div class="card-body">
+            <ul class="item-list" style="margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 4px;">
+                {% for m in current_user.team_members %}
+                <li class="item-row">
+                    <span>{{ m.gamertag }} <small style="color: var(--text-muted);">({{ m.platform }})</small></span>
+                    <form action="{{ url_for('main.delete_member', member_id=m.id) }}" method="POST">
+                        <button class="btn-icon" style="color: var(--primary);">🗑️</button>
+                    </form>
+                </li>
+                {% else %}
+                <li style="padding:15px; text-align:center; color: var(--text-muted);">Noch keine Spieler eingetragen.</li>
+                {% endfor %}
+            </ul>
             
-            <form action="{{ url_for('main.add_member') }}" method="POST" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-                <input type="text" name="gamertag" placeholder="Gamertag" required style="padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
-                <input type="text" name="activision_id" placeholder="Activision ID" required style="padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
-                <select name="platform" style="padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
+            <form action="{{ url_for('main.add_member') }}" method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" name="gamertag" placeholder="Gamertag" required style="flex: 1;">
+                <input type="text" name="activision_id" placeholder="Activision ID" required style="flex: 1;">
+                <select name="platform" style="flex: 1; min-width: 100px;">
                     <option value="PC">PC</option>
                     <option value="PS5">PS5</option>
                     <option value="XBOX">Xbox</option>
                 </select>
-                <button class="btn" style="background: #2196f3;">Hinzufügen</button>
+                <button class="btn">Hinzufügen</button>
             </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if archived_tournaments or archived_cups or archived_leagues %}
+    <div class="card" style="margin-top: 40px; border: 1px dashed #444; background: transparent;">
+        <div class="card-header" style="background: transparent; border-bottom: none; border-left: none;">
+            <h3 style="color: var(--text-muted);">📦 Archiv</h3>
+        </div>
+        <div class="card-body" style="padding-top: 0;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                {% for t in archived_tournaments %}
+                    <span style="background: #222; padding: 5px 10px; border-radius: 4px; border: 1px solid #333; color: #888; font-size: 0.85rem;">🏆 {{ t.name }}</span>
+                {% endfor %}
+                {% for c in archived_cups %}
+                    <span style="background: #222; padding: 5px 10px; border-radius: 4px; border: 1px solid #333; color: #888; font-size: 0.85rem;">🎮 {{ c.name }}</span>
+                {% endfor %}
+                {% for l in archived_leagues %}
+                    <span style="background: #222; padding: 5px 10px; border-radius: 4px; border: 1px solid #333; color: #888; font-size: 0.85rem;">📈 {{ l.name }}</span>
+                {% endfor %}
+            </div>
         </div>
     </div>
     {% endif %}

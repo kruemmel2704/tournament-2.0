@@ -3,57 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Infernus eSports</title>
     
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#1a1a1a">
+    <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Tournament App</title>
-    
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: #ddd; margin: 0; padding-bottom: 80px; /* Platz für Tabbar unten */ }
-        
-        /* Navbar Optimierung */
-        .navbar { background: #1f1f1f; padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .nav-brand { font-weight: bold; font-size: 1.2rem; color: #fff; text-decoration: none; }
-        .nav-links a { margin-left: 15px; color: #aaa; text-decoration: none; font-size: 0.9rem; }
-        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; text-decoration: none; display: inline-block; }
-        .btn-small { padding: 5px 10px; border-radius: 3px; font-size: 0.8rem; border: none; cursor: pointer; color: white; }
-        
-        /* Container */
-        .container { padding: 15px; max-width: 1200px; margin: 0 auto; }
-        
-        /* Generische Karten */
-        .card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
 
-        /* Inputs Mobil-Freundlich machen */
-        input, select, button { font-size: 16px; /* Verhindert Zoom auf iPhone */ }
-
-        /* HANDY ANPASSUNGEN (Media Queries) */
-        @media (max-width: 768px) {
-            .nav-links { display: none; } /* Menü oben ausblenden, wir bauen unten eins? Oder Hamburger */
-            
-            /* Grids untereinander statt nebeneinander */
-            .dash-grid, .map-grid, div[style*="grid-template-columns"] {
-                grid-template-columns: 1fr !important;
-            }
-            
-            /* Flexboxen umbrechen */
-            div[style*="display: flex"] {
-                flex-wrap: wrap;
-            }
-            
-            /* Tabellen scrollbar machen */
-            table { display: block; overflow-x: auto; white-space: nowrap; }
-            
-            .container { padding: 10px; }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
     <nav class="navbar">
-        <a href="{{ url_for('main.dashboard') }}" class="nav-brand">🏆 Tournament</a>
+        <a href="{{ url_for('main.dashboard') }}" class="nav-brand">🔥 Infernus eSports League</a>
         <div class="nav-links">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
@@ -68,16 +31,10 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register("/static/sw.js")
-            .then(() => console.log("Service Worker Registered"));
-        }
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            // WICHTIG: Hier muss nur "/sw.js" stehen, nicht "/static/..."
+            // Zeigt auf die Route in main.py, nicht static!
             navigator.serviceWorker.register("/sw.js")
-            .then(reg => console.log("Service Worker Registered!", reg))
-            .catch(err => console.log("SW Error:", err));
+            .then(() => console.log("SW Ready"))
+            .catch(err => console.log("SW Fail", err));
         }
     </script>
 </body>
