@@ -150,7 +150,7 @@
             {% endfor %}
         </div>
 
-        <form action="{{ url_for('admin.add_member') }}" method="POST" style="background: #252525; padding: 15px; border-radius: 4px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <form action="{{ url_for('main.add_member') }}" method="POST" style="background: #252525; padding: 15px; border-radius: 4px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <strong style="color: #fff; margin-right: 10px;">+ Neu:</strong>
             <input type="text" name="gamertag" placeholder="Gamertag" required style="flex: 1; min-width: 150px; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 3px;">
             <input type="text" name="activision_id" placeholder="Activision ID (Name#12345)" required style="flex: 1; min-width: 180px; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 3px;">
