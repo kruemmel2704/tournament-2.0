@@ -1,79 +1,79 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app
 from flask_login import login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
-from app.models import Tournament, Cup, League, Map, User, Clan, Member
+from app.models import User, TeamMember, Tournament, Cup, League
 from app.extensions import db
-from app.utils import clan_required
-import random, secrets
+import os
+import json
 
 main_bp = Blueprint('main', __name__)
 
+# --- DASHBOARD & HAUPTSEITEN ---
+
+@main_bp.route('/')
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    all_tournaments = Tournament.query.all()
-    return render_template('dashboard.html', 
-        active_tournaments=[t for t in all_tournaments if not t.is_archived],
-        archived_tournaments=[t for t in all_tournaments if t.is_archived],
-        active_cups=Cup.query.filter_by(is_archived=False).all(),
-        archived_cups=Cup.query.filter_by(is_archived=True).all(),
-        active_leagues=League.query.filter_by(is_archived=False).all(),
-        archived_leagues=League.query.filter_by(is_archived=True).all(),
-        maps=Map.query.filter_by(is_archived=False).all(),
-        users=User.query.filter_by(is_admin=False).all(), clans=Clan.query.all(),
-        clan_map={u.username: u.clan.name for u in User.query.filter(User.clan_id != None).all()}
-    )
+    # Daten für das Dashboard laden
+    active_tournaments = Tournament.query.filter_by(is_archived=False).all()
+    archived_tournaments = Tournament.query.filter_by(is_archived=True).all()
+    
+    active_cups = Cup.query.filter_by(is_archived=False).all()
+    archived_cups = Cup.query.filter_by(is_archived=True).all()
+    
+    active_leagues = League.query.filter_by(is_archived=False).all()
+    archived_leagues = League.query.filter_by(is_archived=True).all()
 
-@main_bp.route('/rules')
-def rules(): return render_template('rules.html')
+    return render_template('dashboard.html',
+                           active_tournaments=active_tournaments,
+                           archived_tournaments=archived_tournaments,
+                           active_cups=active_cups,
+                           archived_cups=archived_cups,
+                           active_leagues=active_leagues,
+                           archived_leagues=archived_leagues)
+
+@main_bp.route('/clan_dashboard')
+@login_required
+def clan_dashboard():
+    # Placeholder für die Clan-Ansicht
+    return render_template('clan_dashboard.html') 
+
+# --- MEMBER VERWALTUNG ---
 
 @main_bp.route('/add_member', methods=['POST'])
 @login_required
 def add_member():
-    db.session.add(Member(user_id=current_user.id, gamertag=request.form.get('gamertag'), activision_id=request.form.get('activision_id'), platform=request.form.get('platform')))
-    db.session.commit(); return redirect(url_for('main.dashboard'))
+    gamertag = request.form.get('gamertag')
+    activision_id = request.form.get('activision_id')
+    platform = request.form.get('platform')
+    
+    if gamertag and activision_id and platform:
+        new_member = TeamMember(gamertag=gamertag, activision_id=activision_id, platform=platform, owner_id=current_user.id)
+        db.session.add(new_member)
+        db.session.commit()
+        flash('Mitglied hinzugefügt!', 'success')
+    else:
+        flash('Bitte alle Felder ausfüllen.', 'error')
+        
+    return redirect(url_for('main.dashboard'))
 
 @main_bp.route('/delete_member/<int:member_id>', methods=['POST'])
 @login_required
 def delete_member(member_id):
-    m = Member.query.get_or_404(member_id)
-    if m.user_id == current_user.id or current_user.is_admin: db.session.delete(m); db.session.commit()
+    member = TeamMember.query.get_or_404(member_id)
+    if member.owner_id == current_user.id:
+        db.session.delete(member)
+        db.session.commit()
+        flash('Mitglied entfernt.', 'success')
+    else:
+        flash('Keine Berechtigung.', 'error')
     return redirect(url_for('main.dashboard'))
 
-@main_bp.route('/clan_dashboard')
-@clan_required
-def clan_dashboard():
-    return render_template('clan_dashboard.html', clan=Clan.query.get(session['clan_id']), free_agents=User.query.filter(User.clan_id == None, User.is_admin == False, User.is_mod == False).all())
-
-@main_bp.route('/clan_add_member/<int:user_id>', methods=['POST'])
-@clan_required
-def clan_add_member(user_id):
-    User.query.get_or_404(user_id).clan_id = session['clan_id']; db.session.commit(); return redirect(url_for('main.clan_dashboard'))
-
-@main_bp.route('/clan_remove_member/<int:user_id>', methods=['POST'])
-@clan_required
-def clan_remove_member(user_id):
-    User.query.get_or_404(user_id).clan_id = None; db.session.commit(); return redirect(url_for('main.clan_dashboard'))
-
-@main_bp.route('/clan_create_team', methods=['POST'])
-@clan_required
-def clan_create_team():
-    c = Clan.query.get(session['clan_id']); name = f"{c.name}.{request.form.get('team_name')}"
-    if not User.query.filter_by(username=name).first(): db.session.add(User(username=name, token=str(random.randint(10000,99999)), clan_id=c.id)); db.session.commit(); flash(f'Team {name} erstellt!', 'success')
-    return redirect(url_for('main.clan_dashboard'))
-
-@main_bp.route('/clan_change_password', methods=['POST'])
-@clan_required
-def clan_change_password():
-    c = Clan.query.get(session['clan_id'])
-    if check_password_hash(c.password, request.form.get('current_password')) and request.form.get('new_password') == request.form.get('confirm_password'):
-        c.password = generate_password_hash(request.form.get('new_password'), method='pbkdf2:sha256'); db.session.commit(); flash('PW geändert.', 'success')
-    return redirect(url_for('main.clan_dashboard'))
+# --- MODERATOR FUNKTIONEN ---
 
 @main_bp.route('/mod_change_password', methods=['POST'])
 @login_required
 def mod_change_password():
-    # Sicherheitscheck: Nur Mods dürfen das
     if not current_user.is_mod:
         flash('Keine Berechtigung.', 'error')
         return redirect(url_for('main.dashboard'))
@@ -82,29 +82,74 @@ def mod_change_password():
     new_pw = request.form.get('new_password')
     confirm_pw = request.form.get('confirm_password')
 
-    # 1. Altes Passwort prüfen
     if not check_password_hash(current_user.password, current_pw):
         flash('Das aktuelle Passwort ist falsch.', 'error')
         return redirect(url_for('main.dashboard'))
 
-    # 2. Übereinstimmung prüfen
     if new_pw != confirm_pw:
         flash('Die neuen Passwörter stimmen nicht überein.', 'error')
         return redirect(url_for('main.dashboard'))
 
-    # 3. Speichern
     current_user.password = generate_password_hash(new_pw, method='pbkdf2:sha256')
     db.session.commit()
     
     flash('Passwort erfolgreich geändert!', 'success')
     return redirect(url_for('main.dashboard'))
 
+# --- PWA SERVICE WORKER ---
 @main_bp.route('/sw.js')
 def service_worker():
-    # Wir senden die Datei aus dem static-Ordner, aber mit dem MIME-Type für Javascript
+    # Dient dazu, die sw.js Datei aus dem static Ordner im Root-Pfad bereitzustellen
     response = send_from_directory(os.path.join(current_app.root_path, 'static'), 'sw.js')
-    # Wichtig: Browsern sagen, dass diese Datei Javascript ist
     response.headers['Content-Type'] = 'application/javascript'
-    # Caching deaktivieren, damit Änderungen am SW sofort übernommen werden
     response.headers['Cache-Control'] = 'no-cache'
     return response
+
+# --- REGELWERK (EDITIERBAR) ---
+
+@main_bp.route('/rules')
+def rules():
+    custom_content = None
+    # Der Pfad zur JSON-Datei im static Ordner
+    file_path = os.path.join(current_app.root_path, 'static', 'rules_content.json')
+    
+    # Prüfen ob eine bearbeitete Version existiert
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                custom_content = data.get('content')
+        except:
+            pass # Bei Fehler einfach None lassen -> lädt Original
+            
+    return render_template('rules.html', custom_content=custom_content)
+
+@main_bp.route('/save_rules', methods=['POST'])
+@login_required
+def save_rules():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Keine Berechtigung'}), 403
+        
+    data = request.get_json()
+    content = data.get('content')
+    file_path = os.path.join(current_app.root_path, 'static', 'rules_content.json')
+    
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump({'content': content}, f)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@main_bp.route('/reset_rules', methods=['POST'])
+@login_required
+def reset_rules():
+    if not current_user.is_admin:
+        return jsonify({'success': False}), 403
+    
+    file_path = os.path.join(current_app.root_path, 'static', 'rules_content.json')
+    # Datei löschen, damit wieder das Hardcoded-Template angezeigt wird
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        
+    return jsonify({'success': True})
