@@ -1,40 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container" style="max-width: 450px; margin-top: 50px;">
-    <div class="card" style="text-align: center; border-top: 5px solid #2196f3;">
-        <h2 style="margin-bottom: 20px;">📝 Clan Registrierung</h2>
+<div class="container" style="max-width: 420px; margin-top: 10vh;">
+    <div class="card" style="border-top: 4px solid var(--primary);">
+        <div class="card-header" style="justify-content: center; background: transparent; border-bottom: 1px solid var(--border-color); border-left: none;">
+            <h2 style="margin: 0; font-size: 1.5rem;">📝 Clan Registrierung</h2>
+        </div>
         
-        <form method="POST">
-            <div style="text-align: left; margin-bottom: 15px;">
-                <label style="color: #aaa; font-size: 0.9em;">Clan Name</label>
-                <input type="text" name="clan_name" placeholder="Wähle einen Namen" required 
-                       style="width: 100%; padding: 10px; margin-top: 5px; background: #222; border: 1px solid #444; color: white; border-radius: 4px;">
-            </div>
+        <div class="card-body">
+            <form method="POST">
+                <div style="margin-bottom: 15px;">
+                    <input type="text" name="clan_name" placeholder="Clan Name wählen" required 
+                           style="width: 100%; box-sizing: border-box;">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <input type="password" name="password" placeholder="Passwort" required 
+                           style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <input type="password" name="confirm_password" placeholder="Passwort wiederholen" required 
+                           style="width: 100%; box-sizing: border-box;">
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; padding: 12px; font-size: 1rem;">Registrieren</button>
+            </form>
             
-            <div style="text-align: left; margin-bottom: 15px;">
-                <label style="color: #aaa; font-size: 0.9em;">Passwort</label>
-                <input type="password" name="password" placeholder="Sicheres Passwort wählen" required 
-                       style="width: 100%; padding: 10px; margin-top: 5px; background: #222; border: 1px solid #444; color: white; border-radius: 4px;">
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center;">
+                <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem;">Bereits einen Account?</p>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="display: block; width: 100%; box-sizing: border-box; text-decoration: none;">
+                    🔒 Zum Login
+                </a>
             </div>
 
-            <div style="text-align: left; margin-bottom: 25px;">
-                <label style="color: #aaa; font-size: 0.9em;">Passwort wiederholen</label>
-                <input type="password" name="confirm_password" placeholder="Passwort bestätigen" required 
-                       style="width: 100%; padding: 10px; margin-top: 5px; background: #222; border: 1px solid #444; color: white; border-radius: 4px;">
-            </div>
-            
-            <button type="submit" class="btn" style="width: 100%; background: #2196f3;">Registrieren</button>
-        </form>
-        
-        <hr style="border-color: #333; margin: 20px 0;">
-        
-        <p style="color: #888; font-size: 0.9em;">
-            Bereits registriert? <a href="{{ url_for('auth.login') }}" style="color: white;">Hier einloggen</a>
-        </p>
-
-        <div style="background: #1a1a1a; padding: 10px; margin-top: 20px; font-size: 0.8em; color: #666; border-radius: 4px;">
-            ℹ️ Hinweis: Passwort-Reset oder Account-Löschung ist nur über den Admin möglich.
+            <p style="margin-top: 20px; color: var(--text-muted); font-size: 0.8em; text-align: center; font-style: italic;">
+                Hinweis: Account-Löschung ist nur über einen Admin möglich.
+            </p>
         </div>
     </div>
 </div>
