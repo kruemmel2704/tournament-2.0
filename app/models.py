@@ -18,7 +18,11 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
     clan_id = db.Column(db.Integer, db.ForeignKey('clan.id'), nullable=True)
-    team_members = db.relationship('Member', backref='team', lazy=True, cascade="all, delete-orphan")
+    
+    # ACHTUNG: Hier gab es eine Dopplung im Original-Code. Ich habe sie umbenannt:
+    # Alte/Alternative Member Struktur (Member Klasse)
+    legacy_members = db.relationship('Member', backref='team', lazy=True, cascade="all, delete-orphan")
+    # Aktuelle TeamMember Struktur (TeamMember Klasse)
     team_members = db.relationship('TeamMember', backref='owner', lazy=True)
 
 class TeamMember(db.Model):
