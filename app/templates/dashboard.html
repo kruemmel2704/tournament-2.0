@@ -12,6 +12,8 @@
         </div>
         
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{{ url_for('main.rules') }}" class="btn btn-secondary btn-small" style="background: #333; border: 1px solid #555;">📜 Regelwerk</a>
+
             {% if current_user.is_admin %}
                 <a href="{{ url_for('admin.users_manager') }}" class="btn btn-secondary btn-small">👥 User Manager</a>
                 <a href="{{ url_for('admin.maps_manager') }}" class="btn btn-secondary btn-small">🗺️ Maps Manager</a>
