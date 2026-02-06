@@ -1,122 +1,128 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import Tournament, Match, User, Map
+from app.models import League, LeagueMatch, User, Map
 from app.extensions import db
-import json, random, math
+import json
 
-tournament_bp = Blueprint('tournament', __name__)
+league_bp = Blueprint('league', __name__)
 
 def handle_pick_ban_logic(match, selected_map):
     current_banned = match.get_banned()
     current_picked = match.get_picked()
     
-    # Prüfen, ob Karte schon weg ist
+    # Prüfen, ob Karte schon vergeben ist
     if selected_map in current_banned or selected_map in current_picked: 
         return False, "Karte bereits vergeben."
-
-    # --- BAN LOGIK (2 Bans pro Team pro Phase) ---
-    # Wir schauen uns die GESAMT-Anzahl der Bans an, um den Status zu wechseln.
     
-    if match.state == 'ban_1_a':
+    # --- BAN PHASE (2 Bans pro Team pro Runde) ---
+    if match.state == 'ban_1_a': 
         current_banned.append(selected_map)
-        # Wenn 2 Karten gebannt sind (2 von A), ist B dran
         if len(current_banned) >= 2: match.state = 'ban_1_b'
-        
-    elif match.state == 'ban_1_b':
+
+    elif match.state == 'ban_1_b': 
         current_banned.append(selected_map)
-        # Wenn 4 Karten gebannt sind (2 von A + 2 von B), nächste Phase
+        # 2 von A + 2 von B = 4
         if len(current_banned) >= 4: match.state = 'ban_2_a'
-        
-    elif match.state == 'ban_2_a':
+
+    elif match.state == 'ban_2_a': 
         current_banned.append(selected_map)
-        # Wenn 6 Karten gebannt sind (4 davor + 2 von A), ist B dran
+        # 4 davor + 2 von A = 6
         if len(current_banned) >= 6: match.state = 'ban_2_b'
-        
-    elif match.state == 'ban_2_b':
+
+    elif match.state == 'ban_2_b': 
         current_banned.append(selected_map)
-        # Wenn 8 Karten gebannt sind (6 davor + 2 von B), geht es ans Picken
+        # 6 davor + 2 von B = 8 -> Wechsel zu Pick
         if len(current_banned) >= 8: match.state = 'pick_a'
 
-    # --- PICK LOGIK (A pickt 2, dann B pickt 2) ---
-    elif match.state == 'pick_a':
+    # --- PICK PHASE (2 Picks pro Team) ---
+    elif match.state == 'pick_a': 
         current_picked.append(selected_map)
         if len(current_picked) >= 2: match.state = 'pick_b'
-        
-    elif match.state == 'pick_b':
+
+    elif match.state == 'pick_b': 
         current_picked.append(selected_map)
-        # 2 von A + 2 von B = 4 Karten total -> Scoring
+        # 2 von A + 2 von B = 4 -> Scoring
         if len(current_picked) >= 4: match.state = 'scoring_phase'
     
-    # Speichern
     match.banned_maps = json.dumps(current_banned)
     match.picked_maps = json.dumps(current_picked)
     return True, "Erfolgreich."
 
-def advance_winner(match):
-    if not match.next_match_id: return
-    nm = Match.query.get(match.next_match_id)
-    if not nm: return
-    
-    wa, wb = match.get_map_wins()
-    if wa > wb: win = match.team_a
-    elif wb > wa: win = match.team_b
-    else: win = match.team_a if match.total_score_a > match.total_score_b else match.team_b
-
-    if match.match_index % 2 == 0: nm.team_a = win
-    else: nm.team_b = win
-    if nm.team_a != "TBD" and nm.team_b != "TBD": nm.state = 'ban_1_a'
-    db.session.commit()
-
 def handle_scoring_logic(match, form_data, user):
     try:
-        # Versuchen Scores für 5 Maps zu lesen (Fallback-Größe)
+        # Standardmäßig 5 Slots lesen (Fallback), auch wenn nur 4 gespielt werden
         sa = [max(0, int(form_data.get(f'score_a_{i}',0))) for i in range(1, 6)]
         sb = [max(0, int(form_data.get(f'score_b_{i}',0))) for i in range(1, 6)]
-    except: return
+    except: return False, "Ungültige Eingabe."
     
+    lineup_list = form_data.getlist('lineup_member')
+    
+    # ADMIN / MOD: Direkt speichern
     if user.is_admin or user.is_mod:
         match.scores_a = json.dumps(sa); match.scores_b = json.dumps(sb)
-        match.state = 'finished'; match.draft_a_scores=None; match.draft_b_scores=None
-        advance_winner(match)
-        return
+        match.state = 'finished'
+        return True, "Admin-Save erfolgreich."
         
     isa = (user.username == match.team_a); isb = (user.username == match.team_b)
-    if not (isa or isb): return
+    if not (isa or isb): return False, "Keine Berechtigung."
     
-    bundle = {'a':sa, 'b':sb}
-    if isa: match.draft_a_scores = json.dumps(bundle)
-    elif isb: match.draft_b_scores = json.dumps(bundle)
+    # DRAFTS SPEICHERN
+    if isa: 
+        match.draft_a_scores = json.dumps({'a':sa, 'b':sb}); match.draft_a_lineup = json.dumps(lineup_list)
+    elif isb: 
+        match.draft_b_scores = json.dumps({'a':sa, 'b':sb}); match.draft_b_lineup = json.dumps(lineup_list)
     
+    # VERGLEICHEN
     if match.draft_a_scores and match.draft_b_scores:
         if match.draft_a_scores == match.draft_b_scores:
-            match.scores_a = json.dumps(sa); match.scores_b = json.dumps(sb); match.state = 'finished'; advance_winner(match)
-        else: match.state = 'conflict'
-    else: match.state = 'waiting_for_confirmation'
+            match.scores_a = json.dumps(sa); match.scores_b = json.dumps(sb)
+            match.state = 'confirming' # In der Liga muss man noch das Lineup bestätigen
+            return True, "Scores stimmen überein. Bitte Lineup bestätigen."
+        else: 
+            match.state = 'conflict'
+            return False, "Konflikt: Ergebnisse stimmen nicht überein."
+    else: 
+        match.state = 'waiting_for_confirmation'
+        return True, "Gespeichert. Warte auf Gegner."
 
-@tournament_bp.route('/create_tournament', methods=['GET', 'POST'])
+@league_bp.route('/create_league', methods=['GET', 'POST'])
 @login_required
-def create_tournament():
+def create_league():
     if not current_user.is_admin: return redirect(url_for('main.dashboard'))
     if request.method == 'POST':
-        sel = request.form.getlist('selected_users'); random.shuffle(sel)
-        t = Tournament(name=request.form.get('tournament_name')); db.session.add(t); db.session.commit()
-        for i in range(0, len(sel), 2): db.session.add(Match(tournament_id=t.id, team_a=sel[i], team_b=sel[i+1], state='ban_1_a', round_number=1, match_index=i//2))
-        db.session.commit()
-        prev = [m for m in t.matches if m.round_number==1]
-        for r in range(2, int(math.ceil(math.log2(len(sel))))+1):
-            curr = []
-            for i in range(len(prev)//2 + len(prev)%2):
-                db.session.add(Match(tournament_id=t.id, team_a="TBD", team_b="TBD", state='waiting', round_number=r, match_index=i)); curr.append(Match.query.all()[-1])
-            db.session.commit(); 
-            for idx, pm in enumerate(prev): pm.next_match_id = curr[idx//2].id
-            db.session.commit(); prev = curr
-        return redirect(url_for('main.dashboard'))
-    return render_template('create_tournament.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
+        l = League(name=request.form.get('league_name'), participants=json.dumps(request.form.getlist('selected_users'))); db.session.add(l); db.session.commit()
+        teams = request.form.getlist('selected_users')
+        if len(teams)%2!=0: teams.append(None)
+        for r in range(len(teams)-1):
+            for i in range(len(teams)//2):
+                if teams[i] and teams[len(teams)-1-i]: db.session.add(LeagueMatch(league_id=l.id, team_a=teams[i], team_b=teams[len(teams)-1-i], round_number=r+1))
+            teams.insert(1, teams.pop())
+        db.session.commit(); return redirect(url_for('main.dashboard'))
+    return render_template('create_league.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
 
-@tournament_bp.route('/match/<int:match_id>', methods=['GET', 'POST'])
+@league_bp.route('/league/<int:league_id>')
+def league_details(league_id):
+    league = League.query.get_or_404(league_id)
+    standings = {user: {'played': 0, 'won_matches': 0, 'lost_matches': 0, 'draw_matches': 0, 'own_score': 0, 'opp_score': 0} for user in league.get_participants()}
+    for m in league.matches:
+        if m.state == 'finished':
+            wa, wb = m.get_map_wins(); sum_a = sum(m.get_scores_a()); sum_b = sum(m.get_scores_b())
+            if m.team_a in standings:
+                s=standings[m.team_a]; s['played']+=1; s['own_score']+=sum_a; s['opp_score']+=sum_b
+                if wa>wb: s['won_matches']+=1
+                elif wb>wa: s['lost_matches']+=1
+                else: s['draw_matches']+=1
+            if m.team_b in standings:
+                s=standings[m.team_b]; s['played']+=1; s['own_score']+=sum_b; s['opp_score']+=sum_a
+                if wb>wa: s['won_matches']+=1
+                elif wa>wb: s['lost_matches']+=1
+                else: s['draw_matches']+=1
+    return render_template('league_details.html', league=league, standings=sorted(standings.items(), key=lambda x:x[1]['own_score'], reverse=True))
+
+@league_bp.route('/league_match/<int:match_id>', methods=['GET', 'POST'])
 @login_required
-def match_view(match_id):
-    match = Match.query.get_or_404(match_id)
+def league_match_view(match_id):
+    match = LeagueMatch.query.get_or_404(match_id)
     active = match.team_a if match.state.endswith('_a') else (match.team_b if match.state.endswith('_b') else None)
     
     if request.method == 'POST':
@@ -126,24 +132,40 @@ def match_view(match_id):
                 db.session.commit()
             else:
                 flash(msg, "error")
+                
         elif 'submit_scores' in request.form:
-            handle_scoring_logic(match, request.form, current_user); db.session.commit()
+            success, msg = handle_scoring_logic(match, request.form, current_user)
+            db.session.commit()
+            flash(msg, "success" if success else "error")
+            
+        elif 'confirm_lineup' in request.form:
+            if current_user.username == match.team_a: match.confirmed_a=True
+            elif current_user.username == match.team_b: match.confirmed_b=True
+            
+            if match.confirmed_a and match.confirmed_b:
+                match.state = 'finished'
+                match.lineup_a = match.draft_a_lineup
+                match.lineup_b = match.draft_b_lineup
+                flash("Match erfolgreich beendet!", "success")
+            else:
+                flash("Bestätigt. Warte auf Gegner...", "info")
+            db.session.commit()
+            
         elif 'lobby_code' in request.form:
             match.lobby_code = request.form.get('lobby_code'); db.session.commit()
+            
+        return redirect(url_for('league.league_match_view', match_id=match.id))
         
-        # Wichtig: Redirect zurück zur selben Seite, um Post-Resubmit zu verhindern
-        return redirect(url_for('tournament.match_view', match_id=match.id))
-        
-    return render_template('match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active)
+    return render_template('league_match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active)
 
-@tournament_bp.route('/archive_tournament/<int:t_id>', methods=['POST'])
+@league_bp.route('/archive_league/<int:league_id>', methods=['POST'])
 @login_required
-def archive_tournament(t_id):
-    if current_user.is_admin: t = Tournament.query.get_or_404(t_id); t.is_archived = not t.is_archived; db.session.commit()
+def archive_league(league_id):
+    if current_user.is_admin: l = League.query.get_or_404(league_id); l.is_archived = not l.is_archived; db.session.commit()
     return redirect(url_for('main.dashboard'))
 
-@tournament_bp.route('/delete_tournament/<int:t_id>', methods=['POST'])
+@league_bp.route('/delete_league/<int:league_id>', methods=['POST'])
 @login_required
-def delete_tournament(t_id):
-    if current_user.is_admin: db.session.delete(Tournament.query.get_or_404(t_id)); db.session.commit()
+def delete_league(league_id):
+    if current_user.is_admin: db.session.delete(League.query.get_or_404(league_id)); db.session.commit()
     return redirect(url_for('main.dashboard'))
