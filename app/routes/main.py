@@ -108,7 +108,3 @@ def service_worker():
     # Caching deaktivieren, damit Änderungen am SW sofort übernommen werden
     response.headers['Cache-Control'] = 'no-cache'
     return response
-
-@main_bp.route('/rules')
-def rules():
-    return render_template('rules.html')
