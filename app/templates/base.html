@@ -6,8 +6,7 @@
     <title>Infernus eSports</title>
     
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#121212">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#121212"> <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
 
@@ -20,6 +19,7 @@
         <div class="nav-links">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('main.rules') }}">Regelwerk</a>
                 <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% else %}
                 <a href="{{ url_for('auth.login') }}">Login</a>
@@ -31,10 +31,10 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            // Zeigt auf die Route in main.py, nicht static!
+            // Wichtig: Lädt sw.js von der Root-Route (definiert in main.py), nicht direkt aus static!
             navigator.serviceWorker.register("/sw.js")
-            .then(() => console.log("SW Ready"))
-            .catch(err => console.log("SW Fail", err));
+            .then(() => console.log("Service Worker aktiv"))
+            .catch(err => console.log("Service Worker Fehler:", err));
         }
     </script>
 </body>
