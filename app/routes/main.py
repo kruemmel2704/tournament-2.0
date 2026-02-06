@@ -98,3 +98,13 @@ def mod_change_password():
     
     flash('Passwort erfolgreich geändert!', 'success')
     return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/sw.js')
+def service_worker():
+    # Wir senden die Datei aus dem static-Ordner, aber mit dem MIME-Type für Javascript
+    response = send_from_directory(os.path.join(current_app.root_path, 'static'), 'sw.js')
+    # Wichtig: Browsern sagen, dass diese Datei Javascript ist
+    response.headers['Content-Type'] = 'application/javascript'
+    # Caching deaktivieren, damit Änderungen am SW sofort übernommen werden
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
