@@ -19,6 +19,14 @@ class User(UserMixin, db.Model):
     is_mod = db.Column(db.Boolean, default=False)
     clan_id = db.Column(db.Integer, db.ForeignKey('clan.id'), nullable=True)
     team_members = db.relationship('Member', backref='team', lazy=True, cascade="all, delete-orphan")
+    team_members = db.relationship('TeamMember', backref='owner', lazy=True)
+
+class TeamMember(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    gamertag = db.Column(db.String(150), nullable=False)
+    activision_id = db.Column(db.String(150), nullable=False)
+    platform = db.Column(db.String(50), nullable=False) # PC, PS5, XBOX
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
