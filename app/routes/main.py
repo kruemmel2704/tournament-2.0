@@ -69,3 +69,32 @@ def clan_change_password():
     if check_password_hash(c.password, request.form.get('current_password')) and request.form.get('new_password') == request.form.get('confirm_password'):
         c.password = generate_password_hash(request.form.get('new_password'), method='pbkdf2:sha256'); db.session.commit(); flash('PW geändert.', 'success')
     return redirect(url_for('main.clan_dashboard'))
+
+@main_bp.route('/mod_change_password', methods=['POST'])
+@login_required
+def mod_change_password():
+    # Sicherheitscheck: Nur Mods dürfen das
+    if not current_user.is_mod:
+        flash('Keine Berechtigung.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+    current_pw = request.form.get('current_password')
+    new_pw = request.form.get('new_password')
+    confirm_pw = request.form.get('confirm_password')
+
+    # 1. Altes Passwort prüfen
+    if not check_password_hash(current_user.password, current_pw):
+        flash('Das aktuelle Passwort ist falsch.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+    # 2. Übereinstimmung prüfen
+    if new_pw != confirm_pw:
+        flash('Die neuen Passwörter stimmen nicht überein.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+    # 3. Speichern
+    current_user.password = generate_password_hash(new_pw, method='pbkdf2:sha256')
+    db.session.commit()
+    
+    flash('Passwort erfolgreich geändert!', 'success')
+    return redirect(url_for('main.dashboard'))
