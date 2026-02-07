@@ -3,6 +3,8 @@ from flask_login import login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models import User, Clan
 from app.extensions import db
+from sqlalchemy import func
+import re # Für die Regex-Validierung nötig
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -19,8 +21,10 @@ def login():
             flash('Login mit Token erfolgreich.', 'success')
             return redirect(url_for('main.dashboard'))
 
-        # 2. Passwort Login
+        # 2. Passwort Login (Für normale User UND Clan-Admins)
+        # Da der Clan-Name jetzt der Username des Admins ist, funktioniert das hier universell.
         user = User.query.filter_by(username=username).first()
+        
         if user and user.password and check_password_hash(user.password, password):
             login_user(user)
             flash('Willkommen zurück.', 'success')
@@ -28,49 +32,67 @@ def login():
                 return redirect(url_for('main.clan_dashboard'))
             return redirect(url_for('main.dashboard'))
         
-        flash('Login fehlgeschlagen.', 'error')
+        flash('Login fehlgeschlagen. Bitte Daten prüfen.', 'error')
     return render_template('login.html')
 
 @auth_bp.route('/register_clan', methods=['GET', 'POST'])
 def register_clan():
     if request.method == 'POST':
-        clan_name = request.form.get('clan_name')
-        password = request.form.get('password')
-        confirm = request.form.get('confirm_password')
+        # strip() entfernt versehentliche Leerzeichen
+        clan_name = request.form.get('clan_name', '').strip()
+        password = request.form.get('password', '')
+        confirm = request.form.get('confirm_password', '')
 
-        # 1. Validierung: Stimmen Passwörter überein?
+        # --- SICHERHEITS-CHECKS START ---
+        # 1. Länge
+        if len(clan_name) < 3 or len(clan_name) > 20:
+            flash('Name muss zwischen 3 und 20 Zeichen lang sein.', 'error')
+            return redirect(url_for('auth.register_clan'))
+
+        # 2. Erlaubte Zeichen (nur Buchstaben, Zahlen, Unterstrich)
+        if not re.match(r'^[a-zA-Z0-9_]+$', clan_name):
+            flash('Name darf nur Buchstaben, Zahlen und Unterstriche enthalten.', 'error')
+            return redirect(url_for('auth.register_clan'))
+
+        # 3. Reservierte Namen
+        reserved_names = ['admin', 'root', 'support', 'moderator']
+        if clan_name.lower() in reserved_names:
+            flash('Dieser Name ist reserviert.', 'error')
+            return redirect(url_for('auth.register_clan'))
+        # --- SICHERHEITS-CHECKS ENDE ---
+
+        # 4. Passwörter abgleichen
         if password != confirm:
             flash('Passwörter stimmen nicht überein.', 'error')
             return redirect(url_for('auth.register_clan'))
 
-        # 2. Validierung: Gibt es den Namen schon?
-        existing_clan = Clan.query.filter_by(name=clan_name).first()
-        existing_user = User.query.filter_by(username=clan_name).first()
+        # 5. Namens-Check (Case Insensitive)
+        # Wir prüfen, ob der Name schon als Clan ODER als User existiert
+        existing_clan = Clan.query.filter(func.lower(Clan.name) == clan_name.lower()).first()
+        existing_user = User.query.filter(func.lower(User.username) == clan_name.lower()).first()
 
         if existing_clan or existing_user:
             flash('Name bereits vergeben.', 'error')
             return redirect(url_for('auth.register_clan'))
 
-        # 3. Passwort hashen (Nur einmal, wird für beide genutzt)
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-
-        # 4. Clan erstellen (MIT PASSWORT!)
-        # Hier lag vorher der Fehler: Das Passwort muss auch in den Clan
-        new_clan = Clan(name=clan_name, password=hashed_password)
+        # 6. Clan erstellen (OHNE PASSWORT - Verhindert Redundanz)
+        new_clan = Clan(name=clan_name)
         db.session.add(new_clan)
-        db.session.commit()  # Wichtig: Commit, damit new_clan.id generiert wird
+        db.session.commit() # ID generieren
 
-        # 5. Clan Admin User erstellen
+        # 7. Admin-User erstellen (MIT PASSWORT)
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        
         admin_user = User(
-            username=clan_name,
-            password=hashed_password,  # Gleiches gehashtes PW wie beim Clan
+            username=clan_name,          # Der Admin-Account heißt wie der Clan
+            password=hashed_password,    # Hier wird das PW gespeichert
             is_clan_admin=True,
             clan_id=new_clan.id
         )
         db.session.add(admin_user)
         db.session.commit()
 
-        flash('Clan erstellt! Bitte einloggen.', 'success')
+        flash('Clan erstellt! Du kannst dich nun mit dem Clan-Namen einloggen.', 'success')
         return redirect(url_for('auth.login'))
 
     return render_template('register_clan.html')

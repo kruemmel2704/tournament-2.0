@@ -7,23 +7,21 @@ import json
 class Clan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    # password-Spalte wurde ENTFERNT, um Redundanz zu vermeiden
     members = db.relationship('User', backref='clan', lazy=True)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=True) 
+    password = db.Column(db.String(150), nullable=True) # Hier liegt das EINZIGE Passwort
     token = db.Column(db.String(5), nullable=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
     clan_id = db.Column(db.Integer, db.ForeignKey('clan.id'), nullable=True)
     is_clan_admin = db.Column(db.Boolean, default=False)
     
-    # ACHTUNG: Hier gab es eine Dopplung im Original-Code. Ich habe sie umbenannt:
-    # Alte/Alternative Member Struktur (Member Klasse)
+    # Beziehungen
     legacy_members = db.relationship('Member', backref='team', lazy=True, cascade="all, delete-orphan")
-    # Aktuelle TeamMember Struktur (TeamMember Klasse)
     team_members = db.relationship('TeamMember', backref='owner', lazy=True)
 
 class TeamMember(db.Model):
