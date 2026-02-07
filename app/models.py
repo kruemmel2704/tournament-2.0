@@ -59,10 +59,16 @@ class Match(db.Model):
     round_number = db.Column(db.Integer, default=1)
     match_index = db.Column(db.Integer, default=0)
     next_match_id = db.Column(db.Integer, nullable=True)
+    
     banned_maps = db.Column(db.Text, default='[]') 
     picked_maps = db.Column(db.Text, default='[]')
     scores_a = db.Column(db.Text, default='[]')
     scores_b = db.Column(db.Text, default='[]')
+    
+    # Wiederhergestellte Felder
+    draft_a_scores = db.Column(db.Text, nullable=True)
+    draft_b_scores = db.Column(db.Text, nullable=True)
+    
     chat_messages = db.relationship('ChatMessage', backref='match', lazy=True, cascade="all, delete-orphan")
 
     def get_banned(self): return safe_json_load(self.banned_maps)
@@ -70,8 +76,8 @@ class Match(db.Model):
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
-    
-    # NEU: Helper um Clan Namen abzurufen
+
+    # Helper für Clan-Anzeige
     @property
     def team_a_clan(self):
         u = User.query.filter_by(username=self.team_a).first()
@@ -97,9 +103,16 @@ class CupMatch(db.Model):
     round_number = db.Column(db.Integer, default=1)
     state = db.Column(db.String(50), default='waiting_for_ready')
     lobby_code = db.Column(db.String(50), nullable=True)
+    
     scores_a = db.Column(db.Text, default='[]')
     scores_b = db.Column(db.Text, default='[]')
     picked_maps = db.Column(db.Text, default='[]')
+    
+    # Wiederhergestellte Felder (Hier lag der Fehler!)
+    ready_a = db.Column(db.Boolean, default=False)
+    ready_b = db.Column(db.Boolean, default=False)
+    current_picker = db.Column(db.String(100), nullable=True)
+
     chat_messages = db.relationship('CupChatMessage', backref='cup_match', lazy=True, cascade="all, delete-orphan")
 
     def get_picked(self): return safe_json_load(self.picked_maps)
@@ -107,7 +120,7 @@ class CupMatch(db.Model):
     def get_scores_b(self): return safe_json_load(self.scores_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
 
-    # NEU: Helper um Clan Namen abzurufen
+    # Helper für Clan-Anzeige
     @property
     def team_a_clan(self):
         u = User.query.filter_by(username=self.team_a).first()
@@ -133,6 +146,7 @@ class LeagueMatch(db.Model):
     round_number = db.Column(db.Integer, default=1)
     state = db.Column(db.String(50), default='ban_1_a') 
     lobby_code = db.Column(db.String(50), nullable=True)
+    
     banned_maps = db.Column(db.Text, default='[]') 
     picked_maps = db.Column(db.Text, default='[]')
     scores_a = db.Column(db.Text, default='[]')
@@ -141,15 +155,24 @@ class LeagueMatch(db.Model):
     lineup_b = db.Column(db.Text, default='[]')
     confirmed_a = db.Column(db.Boolean, default=False)
     confirmed_b = db.Column(db.Boolean, default=False)
+    
+    # Wiederhergestellte Felder
+    draft_a_scores = db.Column(db.Text, nullable=True)
+    draft_b_scores = db.Column(db.Text, nullable=True)
+    draft_a_lineup = db.Column(db.Text, nullable=True)
+    draft_b_lineup = db.Column(db.Text, nullable=True)
+
     chat_messages = db.relationship('LeagueChatMessage', backref='league_match', lazy=True, cascade="all, delete-orphan")
 
     def get_banned(self): return safe_json_load(self.banned_maps)
     def get_picked(self): return safe_json_load(self.picked_maps)
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
+    def get_lineup_a(self): return safe_json_load(self.lineup_a)
+    def get_lineup_b(self): return safe_json_load(self.lineup_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
 
-    # NEU: Helper um Clan Namen abzurufen
+    # Helper für Clan-Anzeige
     @property
     def team_a_clan(self):
         u = User.query.filter_by(username=self.team_a).first()
@@ -159,7 +182,7 @@ class LeagueMatch(db.Model):
         u = User.query.filter_by(username=self.team_b).first()
         return u.clan.name if u and u.clan else None
 
-# --- CHAT MODELS (Unverändert) ---
+# --- CHAT MODELS ---
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=False)
