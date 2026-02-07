@@ -109,6 +109,7 @@ class CupMatch(db.Model):
     round_number = db.Column(db.Integer, default=1)
     state = db.Column(db.String(50), default='waiting_for_ready')
     lobby_code = db.Column(db.String(50), nullable=True)
+    current_picker = db.Column(db.String(100), nullable=True)
     
     scores_a = db.Column(db.Text, default='[]')
     scores_b = db.Column(db.Text, default='[]')
