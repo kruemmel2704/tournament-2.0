@@ -1,11 +1,11 @@
-from sqlalchemy import create_engine, MetaData, Table, select
+from sqlalchemy import create_engine, MetaData, Table, select, text
 import os
 
-# Konfiguration (Pfade müssen stimmen!)
+# Konfiguration (Pfade prüfen!)
 OLD_DB_PATH = os.path.abspath("./instance/tournament.db.old")
 NEW_DB_PATH = os.path.abspath("./instance/tournament.db")
 
-# Connection Strings für SQLAlchemy
+# Connection Strings
 OLD_DB_URI = f"sqlite:///{OLD_DB_PATH}"
 NEW_DB_URI = f"sqlite:///{NEW_DB_PATH}"
 
@@ -19,31 +19,33 @@ def migrate():
         print(f"❌ FEHLER: Neue DB nicht gefunden: {NEW_DB_PATH}")
         return
 
-    # 1. Verbindung zu beiden Datenbanken herstellen
+    # Engines erstellen
     old_engine = create_engine(OLD_DB_URI)
     new_engine = create_engine(NEW_DB_URI)
 
-    # 2. Struktur (Schema) einlesen
+    # Metadaten (Struktur) laden
     old_meta = MetaData()
     old_meta.reflect(bind=old_engine)
     
     new_meta = MetaData()
     new_meta.reflect(bind=new_engine)
 
-    # Verbindungen öffnen
+    # Transaktion starten
     with old_engine.connect() as old_conn, new_engine.begin() as new_conn:
-        # Wir gehen alle Tabellen der NEUEN Datenbank durch
+        
+        # WICHTIG: Foreign Keys ausschalten, damit wir Tabellen leeren können
+        new_conn.execute(text("PRAGMA foreign_keys=OFF"))
+
         for table_name, new_table in new_meta.tables.items():
             
-            # Check: Gibt es die Tabelle auch in der alten DB?
+            # Gibt es die Tabelle in der alten DB?
             if table_name not in old_meta.tables:
                 print(f"⚠️  Tabelle '{table_name}' existiert nicht in alter DB. Überspringe...")
                 continue
             
             old_table = old_meta.tables[table_name]
 
-            # 3. Gemeinsame Spalten finden
-            # Wir nehmen nur Spalten, die in BEIDEN Tabellen existieren
+            # Gemeinsame Spalten finden
             common_columns = set(c.name for c in new_table.columns) & set(c.name for c in old_table.columns)
             
             if not common_columns:
@@ -52,24 +54,26 @@ def migrate():
 
             print(f"✅ Migriere '{table_name}' ({len(common_columns)} Spalten)...")
 
-            # 4. Daten holen und einfügen
-            # SELECT col1, col2... FROM old_table
+            # 1. ZIEL-TABELLE LEEREN (Löst dein Problem!)
+            new_conn.execute(new_table.delete())
+
+            # 2. ALTE DATEN HOLEN
             sel_stmt = select(*(old_table.c[col] for col in common_columns))
             rows = old_conn.execute(sel_stmt).fetchall()
 
+            # 3. DATEN EINFÜGEN
             if rows:
-                # Daten in Dictionaries umwandeln für den Insert
-                # (SQLAlchemy Core Insert unterstützt Listen von Dictionaries)
                 data_to_insert = [
                     {col: row._mapping[col] for col in common_columns}
                     for row in rows
                 ]
-                
-                # INSERT INTO new_table ...
                 new_conn.execute(new_table.insert(), data_to_insert)
                 print(f"   -> {len(rows)} Zeilen kopiert.")
             else:
                 print("   -> Tabelle war leer.")
+
+        # Foreign Keys wieder an (passiert automatisch beim Verbindungsabbau, aber sauber ist sauber)
+        new_conn.execute(text("PRAGMA foreign_keys=ON"))
 
     print("\n🏁 Migration erfolgreich abgeschlossen!")
 
