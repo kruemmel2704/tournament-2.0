@@ -108,7 +108,12 @@ class Cup(db.Model):
     is_archived = db.Column(db.Boolean, default=False)
     participants = db.Column(db.Text, default='[]')
     matches = db.relationship('CupMatch', backref='cup', lazy=True, cascade="all, delete-orphan")
+    rosters = db.Column(db.Text, default='{}') 
+    
+    matches = db.relationship('CupMatch', backref='cup', lazy=True, cascade="all, delete-orphan")
+    
     def get_participants(self): return safe_json_load(self.participants)
+    def get_rosters(self): return safe_json_load(self.rosters)
 
 class CupMatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -124,6 +129,15 @@ class CupMatch(db.Model):
     scores_b = db.Column(db.Text, default='[]')
     picked_maps = db.Column(db.Text, default='[]')
     
+    # NEU: Lineups & Bestätigung
+    lineup_a = db.Column(db.Text, default='[]') # JSON Liste der Gamertags/IDs
+    lineup_b = db.Column(db.Text, default='[]')
+    confirmed_a = db.Column(db.Boolean, default=False) # Admin hat Team A bestätigt
+    confirmed_b = db.Column(db.Boolean, default=False) # Admin hat Team B bestätigt
+
+    def get_lineup_a(self): return safe_json_load(self.lineup_a)
+    def get_lineup_b(self): return safe_json_load(self.lineup_b)
+
     # NEU: Beweis-Screenshots
     evidence_a = db.Column(db.String(150), nullable=True)
     evidence_b = db.Column(db.String(150), nullable=True)

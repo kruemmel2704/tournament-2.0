@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <h2>📋 Schritt 2: Kader festlegen</h2>
+    <p style="color: #aaa;">Wähle für jedes Team die Spieler aus, die an diesem Cup teilnehmen.</p>
+
+    <form method="POST">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+            
+            {% for team in teams %}
+            <div class="card" style="border-top: 4px solid #e91e63;">
+                <h3 style="margin-top: 0;">{{ team.username }}</h3>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #333; padding: 10px; background: #1a1a1a;">
+                    
+                    {% if team.team_members %}
+                        {% for member in team.team_members %}
+                        <label style="display: flex; gap: 10px; padding: 5px; cursor: pointer; border-bottom: 1px solid #222;">
+                            <input type="checkbox" name="roster_{{ team.id }}" value="{{ member.gamertag }}" checked>
+                            <div>
+                                <span style="font-weight: bold; display: block;">{{ member.gamertag }}</span>
+                                <span style="font-size: 0.8rem; color: #aaa;">{{ member.platform }} | {{ member.activision_id }}</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    {% else %}
+                        <div style="color: var(--danger); font-style: italic;">
+                            ⚠️ Dieses Team hat noch keine Spieler im Dashboard eingetragen!
+                        </div>
+                    {% endif %}
+                    
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%; margin-top: 30px; padding: 15px; font-size: 1.2rem; background: #4caf50;">
+            Cup Starten & Matches erstellen ✅
+        </button>
+    </form>
+</div>
+{% endblock %}
