@@ -2,39 +2,48 @@
 
 {% block content %}
 <style>
-    /* Handy-Optimiertes Grid */
+    /* Styles (gleich lassen, nur für die Übersicht gekürzt) */
     .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
-    .map-card { background: #2a2a2a; border: 2px solid #444; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .map-card:active { transform: scale(0.98); }
+    .map-card { background: #2a2a2a; border: 2px solid #444; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; }
     .map-image { width: 100%; height: 80px; object-fit: cover; display: block; }
     .map-name { padding: 5px; text-align: center; font-weight: bold; font-size: 0.8rem; color: #fff; }
-
-    /* Status Badges */
     .is-banned { filter: grayscale(100%); opacity: 0.6; cursor: not-allowed; border-color: #5a1a1a; }
-    .banned-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; display: none; }
-    .banned-text { color: #f44336; border: 2px solid #f44336; padding: 2px 8px; transform: rotate(-15deg); font-weight: 900; }
+    .banned-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; }
     .is-banned .banned-overlay { display: flex; }
-
+    .banned-text { color: #f44336; border: 2px solid #f44336; padding: 2px 8px; transform: rotate(-15deg); font-weight: 900; }
     .is-picked { border-color: #2e7d32; box-shadow: 0 0 10px #2e7d32; }
-    .picked-badge { position: absolute; top: 5px; right: 5px; background: #2e7d32; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; display: none; }
+    .picked-badge { position: absolute; top: 5px; right: 5px; background: #2e7d32; color: white; padding: 2px 6px; border-radius: 4px; display: none; }
     .is-picked .picked-badge { display: block; }
-
-    /* Chat Anpassung für Mobile */
     .chat-container { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; margin-top: 20px; display: flex; flex-direction: column; height: 50vh; }
     #chatBox { flex: 1; overflow-y: auto; padding: 10px; background: #151515; }
     .chat-input-area { display: flex; gap: 10px; padding: 10px; border-top: 1px solid #333; background: #222; }
-    .chat-input { flex: 1; padding: 10px; background: #333; border: none; color: white; border-radius: 20px; font-size: 16px; }
-
-    /* Handy Tweaks */
-    @media (max-width: 768px) {
-        .map-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+    .chat-input { flex: 1; padding: 10px; background: #333; border: none; color: white; border-radius: 20px; }
+    @media (max-width: 768px) { .map-grid { grid-template-columns: repeat(2, 1fr); } }
+    
+    /* NEU: Clan Styling */
+    .team-display { display: flex; flex-direction: column; align-items: center; }
+    .clan-sub { font-size: 0.9rem; color: #aaa; font-weight: normal; margin-top: 2px; }
+    .vs-text { margin: 0 15px; color: #666; font-size: 1.2rem; align-self: center; }
 </style>
 
 <div class="container">
     
     <div class="card" style="text-align: center; border-left: 5px solid #fbc02d; padding: 15px;" id="statusCard">
-        <h3 style="margin: 0; font-size: 1.2rem;" id="statusHeadline">Lade Status...</h3>
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
+            <div class="team-display">
+                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_a }}</span>
+                {% if match.team_a_clan %}<span class="clan-sub">({{ match.team_a_clan }})</span>{% endif %}
+            </div>
+            
+            <span class="vs-text">VS</span>
+            
+            <div class="team-display">
+                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_b }}</span>
+                {% if match.team_b_clan %}<span class="clan-sub">({{ match.team_b_clan }})</span>{% endif %}
+            </div>
+        </div>
+
+        <h3 style="margin: 0; font-size: 1.1rem; color: #fbc02d;" id="statusHeadline">Lade Status...</h3>
     </div>
 
     <div id="votingSection">
@@ -75,7 +84,19 @@
             <input type="hidden" name="submit_scores" value="true">
             <div style="overflow-x: auto;">
                 <table style="width:100%; border-collapse: collapse; min-width: 300px;">
-                    <thead><tr style="border-bottom: 1px solid #555;"><th>Map</th><th>{{ match.team_a }}</th><th>{{ match.team_b }}</th></tr></thead>
+                    <thead>
+                        <tr style="border-bottom: 1px solid #555;">
+                            <th>Map</th>
+                            <th>
+                                {{ match.team_a }}
+                                {% if match.team_a_clan %}<br><small style="color:#888;">({{match.team_a_clan}})</small>{% endif %}
+                            </th>
+                            <th>
+                                {{ match.team_b }}
+                                {% if match.team_b_clan %}<br><small style="color:#888;">({{match.team_b_clan}})</small>{% endif %}
+                            </th>
+                        </tr>
+                    </thead>
                     <tbody id="scoreTableBody">
                         {% for i in range(1, 6) %}
                         <tr style="border-bottom: 1px solid #333;">
@@ -116,90 +137,54 @@
 
     async function updateState() {
         try {
-            // API FÜR TURNIER MATCH
             const res = await fetch(`/api/match/${matchId}/state`);
             const data = await res.json();
             
-            let text = "";
-            let color = "#fbc02d";
-            const state = data.state;
-
-            // Voting vs Scoring Anzeige
+            let text = ""; let color = "#fbc02d"; const state = data.state;
             const isVoting = state.includes('ban') || state.includes('pick');
             votingSec.style.display = isVoting ? 'block' : 'none';
             scoringSec.style.display = (state === 'scoring_phase' || state === 'finished') ? 'block' : 'none';
 
-            if (state.includes('ban')) {
-                text = `🚫 BANN: ${data.active_team}`;
-                color = "#d32f2f";
-            } else if (state.includes('pick')) {
-                text = `✅ PICK: ${data.active_team}`;
-                color = "#1976d2";
-            } else if (state === 'scoring_phase') {
-                text = "📝 Ergebnisse eintragen";
-                color = "#ff9800";
-            } else if (state === 'finished') {
-                text = "🏁 Match Beendet";
-                color = "#4caf50";
-            }
+            if (state.includes('ban')) { text = `🚫 BANN: ${data.active_team}`; color = "#d32f2f"; } 
+            else if (state.includes('pick')) { text = `✅ PICK: ${data.active_team}`; color = "#1976d2"; } 
+            else if (state === 'scoring_phase') { text = "📝 Ergebnisse eintragen"; color = "#ff9800"; } 
+            else if (state === 'finished') { text = "🏁 Match Beendet"; color = "#4caf50"; }
 
-            statusHeadline.innerText = text;
-            statusCard.style.borderLeftColor = color;
+            statusHeadline.innerText = text; statusCard.style.borderLeftColor = color;
 
             if (isVoting) {
                 const amIActive = (data.active_team === currentUser) || isAdmin;
                 waitMsg.style.display = amIActive ? 'none' : 'block';
-
-                const buttons = document.querySelectorAll('button[name="selected_map"]');
-                buttons.forEach(btn => {
+                document.querySelectorAll('button[name="selected_map"]').forEach(btn => {
                     const mapName = btn.value;
                     const isBanned = data.banned.includes(mapName);
                     const isPicked = data.picked.includes(mapName);
-
                     btn.classList.remove('is-banned', 'is-picked');
                     if (isBanned) btn.classList.add('is-banned');
                     if (isPicked) btn.classList.add('is-picked');
                     btn.disabled = isBanned || isPicked || !amIActive;
                 });
             }
-
-            if (data.picked.length > 0) {
-                data.picked.forEach((mapName, index) => {
-                    const slot = document.querySelector(`.map-slot-${index}`);
-                    if(slot) slot.innerText = mapName;
-                });
-            }
-
+            if (data.picked.length > 0) { data.picked.forEach((mapName, index) => { const slot = document.querySelector(`.map-slot-${index}`); if(slot) slot.innerText = mapName; }); }
             if (lobbyDisplay) lobbyDisplay.innerText = data.lobby_code ? data.lobby_code : "...";
-
         } catch (e) { }
     }
-
-    // CHAT FUNKTIONEN
     async function sendMsg() {
-        const txt = document.getElementById('msgInput').value;
-        if(!txt) return;
-        // API FÜR TURNIER CHAT
+        const txt = document.getElementById('msgInput').value; if(!txt) return;
         await fetch(`/api/match/${matchId}/chat`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: txt}) });
         document.getElementById('msgInput').value = ''; loadChat();
     }
-
     async function loadChat() {
         try {
             const res = await fetch(`/api/match/${matchId}/chat`);
             const data = await res.json();
-            const oldHtml = chatBox.innerHTML;
             const newHtml = data.map(m => {
                 let color = m.is_admin ? '#e65100' : (m.is_mod ? '#00bcd4' : '#333');
-                return `<div style="margin-bottom: 5px; text-align: ${m.is_me ? 'right':'left'}">
-                            <span style="font-size: 0.7em; color: #888;">${m.user}</span><br>
-                            <span style="background: ${m.is_me ? '#1976d2' : color}; padding: 5px 10px; border-radius: 4px; display: inline-block; color: white;">${m.text}</span>
-                        </div>`;
+                return `<div style="margin-bottom: 5px; text-align: ${m.is_me ? 'right':'left'}"><span style="font-size: 0.7em; color: #888;">${m.user}</span><br><span style="background: ${m.is_me ? '#1976d2' : color}; padding: 5px 10px; border-radius: 4px; display: inline-block; color: white;">${m.text}</span></div>`;
             }).join('');
-            if (oldHtml !== newHtml) { chatBox.innerHTML = newHtml; chatBox.scrollTop = chatBox.scrollHeight; }
+            if (chatBox.innerHTML !== newHtml) { chatBox.innerHTML = newHtml; chatBox.scrollTop = chatBox.scrollHeight; }
         } catch(e) {}
     }
-
     setInterval(() => { updateState(); loadChat(); }, 3000);
     updateState(); loadChat();
 </script>

@@ -22,12 +22,31 @@
     .chat-input-area { display: flex; gap: 10px; padding: 10px; border-top: 1px solid #333; background: #222; }
     .chat-input { flex: 1; padding: 10px; background: #333; border: none; color: white; border-radius: 20px; font-size: 16px; }
 
+    /* CLAN HEADER STYLES */
+    .team-display { display: flex; flex-direction: column; align-items: center; }
+    .clan-sub { font-size: 0.9rem; color: #aaa; font-weight: normal; margin-top: 2px; }
+    .vs-text { margin: 0 15px; color: #666; font-size: 1.2rem; align-self: center; }
+
     @media (max-width: 768px) { .map-grid { grid-template-columns: repeat(2, 1fr); } }
 </style>
 
 <div class="container">
     
     <div class="card" style="text-align: center; border-left: 5px solid #fbc02d; padding: 15px;" id="statusCard">
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
+            <div class="team-display">
+                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_a }}</span>
+                {% if match.team_a_clan %}<span class="clan-sub">({{ match.team_a_clan }})</span>{% endif %}
+            </div>
+            
+            <span class="vs-text">VS</span>
+            
+            <div class="team-display">
+                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_b }}</span>
+                {% if match.team_b_clan %}<span class="clan-sub">({{ match.team_b_clan }})</span>{% endif %}
+            </div>
+        </div>
+
         <h3 style="margin: 0; font-size: 1.2rem;" id="statusHeadline">Lade Status...</h3>
     </div>
 
@@ -64,7 +83,19 @@
             
             <div style="overflow-x: auto;">
                 <table style="width:100%; border-collapse: collapse; min-width: 300px; margin-bottom: 15px;">
-                    <thead><tr style="border-bottom: 1px solid #555;"><th>Map</th><th>{{ match.team_a }}</th><th>{{ match.team_b }}</th></tr></thead>
+                    <thead>
+                        <tr style="border-bottom: 1px solid #555;">
+                            <th>Map</th>
+                            <th>
+                                {{ match.team_a }}
+                                {% if match.team_a_clan %}<br><small style="color:#888; font-weight:normal;">({{ match.team_a_clan }})</small>{% endif %}
+                            </th>
+                            <th>
+                                {{ match.team_b }}
+                                {% if match.team_b_clan %}<br><small style="color:#888; font-weight:normal;">({{ match.team_b_clan }})</small>{% endif %}
+                            </th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {% for i in range(1, 6) %}
                         <tr style="border-bottom: 1px solid #333;">

@@ -12,11 +12,16 @@
                    style="width: 100%; padding: 15px; background: #1a1a1a; border: 1px solid #444; color: white; margin-bottom: 20px;">
 
             <label style="color: #aaa;">Teilnehmer wählen</label>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 10px;">
                 {% for user in users %}
                 <label style="background: #222; padding: 10px; border: 1px solid #444; cursor: pointer; display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" name="selected_users" value="{{ user.username }}">
-                    <span>{{ user.username }}</span>
+                    <div>
+                        <span style="font-weight: bold;">{{ user.username }}</span>
+                        {% if user.clan %}
+                        <div style="font-size: 0.8rem; color: #aaa;">({{ user.clan.name }})</div>
+                        {% endif %}
+                    </div>
                 </label>
                 {% endfor %}
             </div>

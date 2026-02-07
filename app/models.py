@@ -7,20 +7,18 @@ import json
 class Clan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    # password-Spalte wurde ENTFERNT, um Redundanz zu vermeiden
     members = db.relationship('User', backref='clan', lazy=True)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=True) # Hier liegt das EINZIGE Passwort
+    password = db.Column(db.String(150), nullable=True)
     token = db.Column(db.String(5), nullable=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
     clan_id = db.Column(db.Integer, db.ForeignKey('clan.id'), nullable=True)
     is_clan_admin = db.Column(db.Boolean, default=False)
     
-    # Beziehungen
     legacy_members = db.relationship('Member', backref='team', lazy=True, cascade="all, delete-orphan")
     team_members = db.relationship('TeamMember', backref='owner', lazy=True)
 
@@ -28,7 +26,7 @@ class TeamMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     gamertag = db.Column(db.String(150), nullable=False)
     activision_id = db.Column(db.String(150), nullable=False)
-    platform = db.Column(db.String(50), nullable=False) # PC, PS5, XBOX
+    platform = db.Column(db.String(50), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 class Member(db.Model):
@@ -65,8 +63,6 @@ class Match(db.Model):
     picked_maps = db.Column(db.Text, default='[]')
     scores_a = db.Column(db.Text, default='[]')
     scores_b = db.Column(db.Text, default='[]')
-    draft_a_scores = db.Column(db.Text, nullable=True)
-    draft_b_scores = db.Column(db.Text, nullable=True)
     chat_messages = db.relationship('ChatMessage', backref='match', lazy=True, cascade="all, delete-orphan")
 
     def get_banned(self): return safe_json_load(self.banned_maps)
@@ -74,10 +70,16 @@ class Match(db.Model):
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
+    
+    # NEU: Helper um Clan Namen abzurufen
     @property
-    def total_score_a(self): return sum(self.get_scores_a())
+    def team_a_clan(self):
+        u = User.query.filter_by(username=self.team_a).first()
+        return u.clan.name if u and u.clan else None
     @property
-    def total_score_b(self): return sum(self.get_scores_b())
+    def team_b_clan(self):
+        u = User.query.filter_by(username=self.team_b).first()
+        return u.clan.name if u and u.clan else None
 
 class Cup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -94,19 +96,26 @@ class CupMatch(db.Model):
     team_b = db.Column(db.String(100), nullable=False)
     round_number = db.Column(db.Integer, default=1)
     state = db.Column(db.String(50), default='waiting_for_ready')
-    ready_a = db.Column(db.Boolean, default=False)
-    ready_b = db.Column(db.Boolean, default=False)
-    picked_maps = db.Column(db.Text, default='[]')
-    current_picker = db.Column(db.String(100), nullable=True)
     lobby_code = db.Column(db.String(50), nullable=True)
     scores_a = db.Column(db.Text, default='[]')
     scores_b = db.Column(db.Text, default='[]')
+    picked_maps = db.Column(db.Text, default='[]')
     chat_messages = db.relationship('CupChatMessage', backref='cup_match', lazy=True, cascade="all, delete-orphan")
 
     def get_picked(self): return safe_json_load(self.picked_maps)
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
+
+    # NEU: Helper um Clan Namen abzurufen
+    @property
+    def team_a_clan(self):
+        u = User.query.filter_by(username=self.team_a).first()
+        return u.clan.name if u and u.clan else None
+    @property
+    def team_b_clan(self):
+        u = User.query.filter_by(username=self.team_b).first()
+        return u.clan.name if u and u.clan else None
 
 class League(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -130,10 +139,6 @@ class LeagueMatch(db.Model):
     scores_b = db.Column(db.Text, default='[]')
     lineup_a = db.Column(db.Text, default='[]') 
     lineup_b = db.Column(db.Text, default='[]')
-    draft_a_scores = db.Column(db.Text, nullable=True)
-    draft_b_scores = db.Column(db.Text, nullable=True)
-    draft_a_lineup = db.Column(db.Text, nullable=True)
-    draft_b_lineup = db.Column(db.Text, nullable=True)
     confirmed_a = db.Column(db.Boolean, default=False)
     confirmed_b = db.Column(db.Boolean, default=False)
     chat_messages = db.relationship('LeagueChatMessage', backref='league_match', lazy=True, cascade="all, delete-orphan")
@@ -142,13 +147,19 @@ class LeagueMatch(db.Model):
     def get_picked(self): return safe_json_load(self.picked_maps)
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
-    def get_lineup_a(self): return safe_json_load(self.lineup_a)
-    def get_lineup_b(self): return safe_json_load(self.lineup_b)
-    def get_draft_a_lineup(self): return safe_json_load(self.draft_a_lineup)
-    def get_draft_b_lineup(self): return safe_json_load(self.draft_b_lineup)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
 
-# --- CHAT MODELS ---
+    # NEU: Helper um Clan Namen abzurufen
+    @property
+    def team_a_clan(self):
+        u = User.query.filter_by(username=self.team_a).first()
+        return u.clan.name if u and u.clan else None
+    @property
+    def team_b_clan(self):
+        u = User.query.filter_by(username=self.team_b).first()
+        return u.clan.name if u and u.clan else None
+
+# --- CHAT MODELS (Unverändert) ---
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=False)
