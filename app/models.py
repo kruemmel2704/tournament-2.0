@@ -7,6 +7,7 @@ import json
 class Clan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    # Beziehung zu Usern
     members = db.relationship('User', backref='clan', lazy=True)
 
 class User(UserMixin, db.Model):
@@ -14,27 +15,27 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=True)
     token = db.Column(db.String(5), nullable=True)
+    
+    # Rechte
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
+    
+    # Clan Zugehörigkeit
     clan_id = db.Column(db.Integer, db.ForeignKey('clan.id'), nullable=True)
     is_clan_admin = db.Column(db.Boolean, default=False)
     
-    legacy_members = db.relationship('Member', backref='team', lazy=True, cascade="all, delete-orphan")
+    # Roster / Team Member Management (Legacy Member entfernt)
     team_members = db.relationship('TeamMember', backref='owner', lazy=True)
 
 class TeamMember(db.Model):
+    """Repräsentiert einen Spieler/Account in einem Roster (z.B. für verschiedene Games)"""
     id = db.Column(db.Integer, primary_key=True)
     gamertag = db.Column(db.String(150), nullable=False)
     activision_id = db.Column(db.String(150), nullable=False)
     platform = db.Column(db.String(50), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-class Member(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    gamertag = db.Column(db.String(100), nullable=False)
-    activision_id = db.Column(db.String(100), nullable=False)
-    platform = db.Column(db.String(50), nullable=False)
+# Class Member wurde entfernt (da Legacy/veraltet)
 
 class Map(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,6 +44,7 @@ class Map(db.Model):
     is_archived = db.Column(db.Boolean, default=False)
 
 # --- MATCH MODELS ---
+
 class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -52,22 +54,27 @@ class Tournament(db.Model):
 class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tournament_id = db.Column(db.Integer, db.ForeignKey('tournament.id'))
+    
+    # Teams
     team_a = db.Column(db.String(100), nullable=False, default="TBD")
     team_b = db.Column(db.String(100), nullable=False, default="TBD")
+    
+    # Status & Meta
     state = db.Column(db.String(50), default='waiting') 
     lobby_code = db.Column(db.String(50), nullable=True)
     round_number = db.Column(db.Integer, default=1)
     match_index = db.Column(db.Integer, default=0)
     next_match_id = db.Column(db.Integer, nullable=True)
     
+    # Daten
     banned_maps = db.Column(db.Text, default='[]') 
     picked_maps = db.Column(db.Text, default='[]')
     scores_a = db.Column(db.Text, default='[]')
     scores_b = db.Column(db.Text, default='[]')
     
-    # Wiederhergestellte Felder
-    draft_a_scores = db.Column(db.Text, nullable=True)
-    draft_b_scores = db.Column(db.Text, nullable=True)
+    # NEU: Beweis-Screenshots für Ergebnisse
+    evidence_a = db.Column(db.String(150), nullable=True) # Dateipfad Bild Team A
+    evidence_b = db.Column(db.String(150), nullable=True) # Dateipfad Bild Team B
     
     chat_messages = db.relationship('ChatMessage', backref='match', lazy=True, cascade="all, delete-orphan")
 
@@ -76,8 +83,7 @@ class Match(db.Model):
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
-
-    # Helper für Clan-Anzeige
+    
     @property
     def team_a_clan(self):
         u = User.query.filter_by(username=self.team_a).first()
@@ -108,11 +114,10 @@ class CupMatch(db.Model):
     scores_b = db.Column(db.Text, default='[]')
     picked_maps = db.Column(db.Text, default='[]')
     
-    # Wiederhergestellte Felder (Hier lag der Fehler!)
-    ready_a = db.Column(db.Boolean, default=False)
-    ready_b = db.Column(db.Boolean, default=False)
-    current_picker = db.Column(db.String(100), nullable=True)
-
+    # NEU: Beweis-Screenshots
+    evidence_a = db.Column(db.String(150), nullable=True)
+    evidence_b = db.Column(db.String(150), nullable=True)
+    
     chat_messages = db.relationship('CupChatMessage', backref='cup_match', lazy=True, cascade="all, delete-orphan")
 
     def get_picked(self): return safe_json_load(self.picked_maps)
@@ -120,7 +125,6 @@ class CupMatch(db.Model):
     def get_scores_b(self): return safe_json_load(self.scores_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
 
-    # Helper für Clan-Anzeige
     @property
     def team_a_clan(self):
         u = User.query.filter_by(username=self.team_a).first()
@@ -141,6 +145,7 @@ class League(db.Model):
 class LeagueMatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     league_id = db.Column(db.Integer, db.ForeignKey('league.id'), nullable=False)
+    
     team_a = db.Column(db.String(100), nullable=False)
     team_b = db.Column(db.String(100), nullable=False)
     round_number = db.Column(db.Integer, default=1)
@@ -151,16 +156,15 @@ class LeagueMatch(db.Model):
     picked_maps = db.Column(db.Text, default='[]')
     scores_a = db.Column(db.Text, default='[]')
     scores_b = db.Column(db.Text, default='[]')
+    
     lineup_a = db.Column(db.Text, default='[]') 
     lineup_b = db.Column(db.Text, default='[]')
     confirmed_a = db.Column(db.Boolean, default=False)
     confirmed_b = db.Column(db.Boolean, default=False)
     
-    # Wiederhergestellte Felder
-    draft_a_scores = db.Column(db.Text, nullable=True)
-    draft_b_scores = db.Column(db.Text, nullable=True)
-    draft_a_lineup = db.Column(db.Text, nullable=True)
-    draft_b_lineup = db.Column(db.Text, nullable=True)
+    # NEU: Beweis-Screenshots
+    evidence_a = db.Column(db.String(150), nullable=True)
+    evidence_b = db.Column(db.String(150), nullable=True)
 
     chat_messages = db.relationship('LeagueChatMessage', backref='league_match', lazy=True, cascade="all, delete-orphan")
 
@@ -168,11 +172,8 @@ class LeagueMatch(db.Model):
     def get_picked(self): return safe_json_load(self.picked_maps)
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
-    def get_lineup_a(self): return safe_json_load(self.lineup_a)
-    def get_lineup_b(self): return safe_json_load(self.lineup_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
 
-    # Helper für Clan-Anzeige
     @property
     def team_a_clan(self):
         u = User.query.filter_by(username=self.team_a).first()
@@ -182,7 +183,7 @@ class LeagueMatch(db.Model):
         u = User.query.filter_by(username=self.team_b).first()
         return u.clan.name if u and u.clan else None
 
-# --- CHAT MODELS ---
+# --- CHAT MODELS (Unverändert) ---
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=False)
