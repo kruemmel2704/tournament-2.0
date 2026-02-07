@@ -148,8 +148,9 @@
     <div class="manage-grid">
         <div class="section-card border-clan">
             <h3 class="section-title text-clan">🚩 Neuer Clan</h3>
-            <form action="{{ url_for('admin.create_clan') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+            <form action="{{ url_for('main.create_clan') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
                 <input type="text" name="clan_name" placeholder="Clan Name" required>
+                <input type="password" name="password" placeholder="Admin Passwort" required>
                 <button type="submit" class="btn" style="background: #e91e63;">Clan erstellen</button>
             </form>
         </div>
@@ -205,7 +206,7 @@
         </div>
 
         <div id="pw-reset-{{ clan.id }}" class="pw-reset-box" style="display: none;">
-            <span style="color: var(--text-muted); font-size: 0.9rem;">Neues Clan-PW:</span>
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Neues Clan-Admin PW:</span>
             <form action="{{ url_for('admin.admin_reset_clan_password', clan_id=clan.id) }}" method="POST" style="display: flex; gap: 10px; flex: 1; flex-wrap:wrap;">
                 <input type="text" name="new_password" placeholder="Passwort..." required style="flex: 1;">
                 <button type="submit" class="btn btn-small" style="background: var(--warning); color: black;">Speichern</button>
@@ -215,7 +216,10 @@
         <div>
             {% for team in clan.members %}
             <div class="team-item">
-                <span style="display:flex; align-items:center; gap:8px;">👤 {{ team.username }}</span>
+                <span style="display:flex; align-items:center; gap:8px;">
+                    {% if team.is_clan_admin %}👑{% else %}👤{% endif %} 
+                    {{ team.username }}
+                </span>
                 <div>
                     <span class="token-badge" title="Login Token">{{ team.token }}</span>
                     <form action="{{ url_for('admin.delete_user', user_id=team.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Team löschen?');">

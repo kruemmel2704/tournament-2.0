@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import User, TeamMember, Tournament, Cup, League, Clan, Match, Map
 from app.extensions import db
+from sqlalchemy import func
 import os
 import json
 import secrets
@@ -26,7 +27,75 @@ def dashboard():
                            active_cups=active_cups, archived_cups=archived_cups,
                            active_leagues=active_leagues, archived_leagues=archived_leagues)
 
-# --- CLAN DASHBOARD ---
+# --- CLAN / USERS MANAGER (NEU) ---
+@main_bp.route('/users')
+@login_required
+def users():
+    if not current_user.is_admin:
+        flash('Kein Zugriff.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    clans = Clan.query.all()
+    moderators = User.query.filter_by(is_mod=True).all()
+    
+    # Freie Teams: Kein Clan, kein Admin/Mod/ClanAdmin
+    users_no_clan = User.query.filter(
+        User.clan_id == None,
+        User.is_admin == False, 
+        User.is_mod == False,
+        User.is_clan_admin == False
+    ).all()
+
+    return render_template('users.html', clans=clans, moderators=moderators, users_no_clan=users_no_clan)
+
+@main_bp.route('/create_clan', methods=['POST'])
+@login_required
+def create_clan():
+    if not current_user.is_admin:
+        flash('Kein Zugriff.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+    clan_name = request.form.get('clan_name', '').strip()
+    password = request.form.get('password') # Das neue Passwort-Feld
+
+    if not clan_name or not password:
+        flash('Name und Passwort erforderlich.', 'error')
+        return redirect(url_for('main.users'))
+
+    # Case-Insensitive Prüfung auf Duplikate
+    if Clan.query.filter(func.lower(Clan.name) == clan_name.lower()).first() or \
+       User.query.filter(func.lower(User.username) == clan_name.lower()).first():
+        flash('Name bereits vergeben.', 'error')
+        return redirect(url_for('main.users'))
+
+    try:
+        # 1. Clan erstellen (OHNE Passwort)
+        new_clan = Clan(name=clan_name)
+        db.session.add(new_clan)
+        db.session.commit()
+
+        # 2. Admin User erstellen (MIT Passwort)
+        hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
+        admin_user = User(
+            username=clan_name,
+            password=hashed_pw,
+            is_clan_admin=True,
+            clan_id=new_clan.id,
+            token=secrets.token_hex(4)
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        
+        flash(f'Clan "{clan_name}" erstellt.', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Datenbankfehler: {str(e)}', 'error')
+
+    return redirect(url_for('main.users'))
+
+
+# --- CLAN DASHBOARD (USER VIEW) ---
 @main_bp.route('/clan_dashboard')
 @login_required
 def clan_dashboard():
@@ -124,8 +193,6 @@ def delete_member(member_id):
 @login_required
 def mod_change_password():
     if not current_user.is_mod: return redirect(url_for('main.dashboard'))
-    # ... Logik vereinfacht, da oben identisch implementiert ...
-    # Hier kurz halten oder Copy-Paste von vorher, Prinzip ist gleich
     cur = request.form.get('current_password')
     new = request.form.get('new_password')
     conf = request.form.get('confirm_password')
