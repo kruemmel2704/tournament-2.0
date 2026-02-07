@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>🌍 Alle Spieler Übersicht</h2>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">&larr; Dashboard</a>
+    </div>
+
+    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Suche nach Name, ID oder Clan..." 
+           style="width: 100%; padding: 12px; margin-bottom: 20px; background: #222; border: 1px solid #444; color: white;">
+
+    <div class="card" style="padding: 0; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+            <thead style="background: #333; color: #fff;">
+                <tr>
+                    <th style="padding: 12px; text-align: left;">Gamertag</th>
+                    <th style="padding: 12px; text-align: left;">Activision ID</th>
+                    <th style="padding: 12px; text-align: left;">Team (User)</th>
+                    <th style="padding: 12px; text-align: left;">Clan</th>
+                    <th style="padding: 12px; text-align: center;">Status</th>
+                    <th style="padding: 12px; text-align: right;">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in players %}
+                <tr style="border-bottom: 1px solid #444; background: {% if p.is_banned %}rgba(255, 0, 0, 0.1){% else %}transparent{% endif %};">
+                    <td style="padding: 12px; font-weight: bold;">
+                        {% if p.platform == 'psn' %}🔵{% elif p.platform == 'xbox' %}🟢{% else %}🖥️{% endif %}
+                        {{ p.gamertag }}
+                    </td>
+                    <td style="padding: 12px; font-family: monospace; color: #aaa;">{{ p.activision_id }}</td>
+                    <td style="padding: 12px;">{{ p.owner.username }}</td>
+                    <td style="padding: 12px;">
+                        {% if p.owner.clan %}
+                            <span style="color: #e91e63; font-weight: bold;">{{ p.owner.clan.name }}</span>
+                        {% else %}
+                            <span style="color: #666;">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        {% if p.is_banned %}
+                            <span style="background: #d32f2f; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">
+                                🚫 GEBANNT
+                            </span>
+                            <div style="font-size: 0.7rem; color: #aaa; margin-top: 2px;">
+                                Bis: {{ p.banned_until.strftime('%d.%m.%Y %H:%M') }}
+                            </div>
+                        {% else %}
+                            <span style="color: #4caf50;">✔ Aktiv</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; text-align: right;">
+                        <form action="{{ url_for('main.ban_player', member_id=p.id) }}" method="POST" style="display: inline-flex; gap: 5px;">
+                            {% if p.is_banned %}
+                                <input type="hidden" name="action" value="unban">
+                                <button type="submit" class="btn btn-small" style="background: #4caf50; color: white;">Entbannen</button>
+                            {% else %}
+                                <input type="text" name="reason" placeholder="Grund..." required style="padding: 5px; width: 100px; font-size: 0.8rem;">
+                                <select name="action" style="padding: 5px; background: #333; color: white; border: 1px solid #555;">
+                                    <option value="24h">24 Std</option>
+                                    <option value="7d">7 Tage</option>
+                                    <option value="perm">Permanent</option>
+                                </select>
+                                <button type="submit" class="btn btn-small" style="background: #d32f2f; color: white;">Bannen</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function filterTable() {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("searchInput");
+    filter = input.value.toUpperCase();
+    table = document.querySelector("table");
+    tr = table.getElementsByTagName("tr");
+    for (i = 1; i < tr.length; i++) {
+        tr[i].style.display = "none";
+        td = tr[i].getElementsByTagName("td");
+        for (var j = 0; j < td.length; j++) {
+            if (td[j]) {
+                txtValue = td[j].textContent || td[j].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                    break;
+                }
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

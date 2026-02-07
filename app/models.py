@@ -34,6 +34,15 @@ class TeamMember(db.Model):
     activision_id = db.Column(db.String(150), nullable=False)
     platform = db.Column(db.String(50), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    banned_until = db.Column(db.DateTime, nullable=True) # Wenn Datum in Zukunft = Gebannt
+    ban_reason = db.Column(db.String(200), nullable=True)
+
+    @property
+    def is_banned(self):
+        # Prüft, ob ein Bann aktiv ist
+        if self.banned_until and self.banned_until > datetime.now():
+            return True
+        return False
 
 # Class Member wurde entfernt (da Legacy/veraltet)
 

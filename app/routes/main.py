@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import User, TeamMember, Tournament, Cup, League, Clan, Match, Map
 from app.extensions import db
 from sqlalchemy import func
+from datetime import datetime, timedelta
 import os
 import json
 import secrets
@@ -239,3 +240,49 @@ def reset_rules():
     fp = os.path.join(current_app.root_path, 'static', 'rules_content.json')
     if os.path.exists(fp): os.remove(fp)
     return jsonify({'success': True})
+
+@main_bp.route('/players')
+@login_required
+def player_list():
+    # Zugriff nur für Admin oder Mod
+    if not (current_user.is_admin or current_user.is_mod):
+        flash('Kein Zugriff.', 'error')
+        return redirect(url_for('main.dashboard'))
+
+    # Alle Spieler laden, sortiert nach Gamertag
+    # Durch .join(User) können wir auch nach Clan filtern/sortieren
+    players = TeamMember.query.join(User).all()
+    
+    return render_template('players_overview.html', players=players)
+
+@main_bp.route('/ban_player/<int:member_id>', methods=['POST'])
+@login_required
+def ban_player(member_id):
+    if not (current_user.is_admin or current_user.is_mod):
+        return redirect(url_for('main.dashboard'))
+    
+    member = TeamMember.query.get_or_404(member_id)
+    action = request.form.get('action') # 'unban', '24h', '7d', 'perm'
+    
+    if action == 'unban':
+        member.banned_until = None
+        member.ban_reason = None
+        flash(f'{member.gamertag} wurde entbannt.', 'success')
+        
+    elif action in ['24h', '7d', 'perm']:
+        now = datetime.now()
+        if action == '24h':
+            member.banned_until = now + timedelta(days=1)
+            duration = "24 Stunden"
+        elif action == '7d':
+            member.banned_until = now + timedelta(days=7)
+            duration = "7 Tage"
+        elif action == 'perm':
+            member.banned_until = now + timedelta(days=365*100) # 100 Jahre = Permanent
+            duration = "Permanent"
+            
+        member.ban_reason = request.form.get('reason', 'Verstoß gegen Regeln')
+        flash(f'{member.gamertag} wurde gebannt ({duration}).', 'error')
+
+    db.session.commit()
+    return redirect(url_for('main.player_list'))

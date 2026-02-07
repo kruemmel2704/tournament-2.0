@@ -14,10 +14,16 @@
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <a href="{{ url_for('main.rules') }}" class="btn btn-secondary btn-small" style="background: #333; border: 1px solid #555;">📜 Regelwerk</a>
 
+            {# --- NEU: Button für Spieler-Management (Admins & Mods) --- #}
+            {% if current_user.is_admin or current_user.is_mod %}
+                <a href="{{ url_for('main.player_list') }}" class="btn btn-secondary btn-small">🌍 Spieler Liste</a>
+            {% endif %}
+            
             {% if current_user.is_admin %}
                 <a href="{{ url_for('admin.users_manager') }}" class="btn btn-secondary btn-small">👥 User Manager</a>
                 <a href="{{ url_for('admin.maps_manager') }}" class="btn btn-secondary btn-small">🗺️ Maps Manager</a>
             {% endif %}
+            
             {% if current_user.clan_id %}
                 <a href="{{ url_for('main.clan_dashboard') }}" class="btn btn-secondary btn-small">🛡️ Mein Clan</a>
             {% endif %}
@@ -151,7 +157,9 @@
             {% endif %}
         </div>
 
-    </div> {% if not current_user.is_admin and not current_user.is_mod %}
+    </div> 
+    
+    {% if not current_user.is_admin and not current_user.is_mod %}
     <div class="card">
         <div class="card-header">
             <h3>👤 Mein Roster</h3>
