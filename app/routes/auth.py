@@ -38,22 +38,32 @@ def register_clan():
         password = request.form.get('password')
         confirm = request.form.get('confirm_password')
 
+        # 1. Validierung: Stimmen Passwörter überein?
         if password != confirm:
             flash('Passwörter stimmen nicht überein.', 'error')
             return redirect(url_for('auth.register_clan'))
 
-        if Clan.query.filter_by(name=clan_name).first() or User.query.filter_by(username=clan_name).first():
+        # 2. Validierung: Gibt es den Namen schon?
+        existing_clan = Clan.query.filter_by(name=clan_name).first()
+        existing_user = User.query.filter_by(username=clan_name).first()
+
+        if existing_clan or existing_user:
             flash('Name bereits vergeben.', 'error')
             return redirect(url_for('auth.register_clan'))
 
-        new_clan = Clan(name=clan_name)
-        db.session.add(new_clan)
-        db.session.commit()
+        # 3. Passwort hashen (Nur einmal, wird für beide genutzt)
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
-        # Clan Admin User erstellen
+        # 4. Clan erstellen (MIT PASSWORT!)
+        # Hier lag vorher der Fehler: Das Passwort muss auch in den Clan
+        new_clan = Clan(name=clan_name, password=hashed_password)
+        db.session.add(new_clan)
+        db.session.commit()  # Wichtig: Commit, damit new_clan.id generiert wird
+
+        # 5. Clan Admin User erstellen
         admin_user = User(
             username=clan_name,
-            password=generate_password_hash(password, method='pbkdf2:sha256'),
+            password=hashed_password,  # Gleiches gehashtes PW wie beim Clan
             is_clan_admin=True,
             clan_id=new_clan.id
         )
