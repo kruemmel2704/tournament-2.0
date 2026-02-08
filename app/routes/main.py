@@ -81,7 +81,9 @@ def users():
     clans = Clan.query.all()
     moderators = User.query.filter_by(is_mod=True).all()
     
-    # Freie Teams: Kein Clan, kein Admin/Mod/ClanAdmin
+    # HIER IST DAS WICHTIGE NEUE FEATURE:
+    admins = User.query.filter_by(is_admin=True).all()
+    
     users_no_clan = User.query.filter(
         User.clan_id == None,
         User.is_admin == False, 
@@ -89,7 +91,11 @@ def users():
         User.is_clan_admin == False
     ).all()
 
-    return render_template('users.html', clans=clans, moderators=moderators, users_no_clan=users_no_clan)
+    return render_template('users.html', 
+                           clans=clans, 
+                           moderators=moderators, 
+                           users_no_clan=users_no_clan,
+                           admins=admins) # <--- Variable übergeben!
 
 @main_bp.route('/create_clan', methods=['POST'])
 @login_required
