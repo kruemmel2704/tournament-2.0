@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models import League, LeagueMatch, User, Map
 from app.extensions import db
 import json
+from datetime import datetime
 
 league_bp = Blueprint('league', __name__)
 
@@ -156,7 +157,7 @@ def league_match_view(match_id):
             
         return redirect(url_for('league.league_match_view', match_id=match.id))
         
-    return render_template('league_match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active)
+    return render_template('league_match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active, now=datetime.now())
 
 @league_bp.route('/archive_league/<int:league_id>', methods=['POST'])
 @login_required
