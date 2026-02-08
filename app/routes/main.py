@@ -44,7 +44,7 @@ def do_setup():
     if username and password:
         hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
         # Erster User ist Admin UND Mod
-        new_admin = User(username=username, password=hashed_pw, is_admin=True, is_mod=True)
+        new_admin = User(username=username, password=hashed_pw, is_admin=True)
         db.session.add(new_admin)
         db.session.commit()
         flash('Installation erfolgreich! Bitte einloggen.', 'success')
