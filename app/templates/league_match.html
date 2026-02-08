@@ -97,7 +97,7 @@
                 {% for m in members_a %}
                     {% if m.banned_until and m.banned_until > now %}
                     <li style="margin-top: 5px;">
-                        <strong style="color: white;">{{ m.gamertag }}</strong> 
+                        <strong style="color: white;" title="ID: {{ m.activision_id }}">{{ m.gamertag }}</strong> 
                         <span style="color: #aaa;">(Team: {{ match.team_a }})</span>
                         <br>
                         <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
@@ -110,7 +110,7 @@
                 {% for m in members_b %}
                     {% if m.banned_until and m.banned_until > now %}
                     <li style="margin-top: 5px;">
-                        <strong style="color: white;">{{ m.gamertag }}</strong> 
+                        <strong style="color: white;" title="ID: {{ m.activision_id }}">{{ m.gamertag }}</strong> 
                         <span style="color: #aaa;">(Team: {{ match.team_b }})</span>
                         <br>
                         <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
@@ -186,10 +186,17 @@
                 {% if current_user.team_members %}
                     {% for member in current_user.team_members %}
                     {% set is_me_banned = member.banned_until and member.banned_until > now %}
-                    <label style="display: block; margin-bottom: 5px; background: #333; padding: 8px; border-radius: 4px; {% if is_me_banned %}opacity:0.6;{% endif %}">
+                    <label style="display: block; margin-bottom: 5px; background: #333; padding: 8px; border-radius: 4px; {% if is_me_banned %}opacity:0.6;{% endif %}"
+                           title="Activision ID: {{ member.activision_id }}">
+                        
                         <input type="checkbox" name="lineup_member" value="{{ member.gamertag }}" {% if is_me_banned %}disabled{% endif %}> 
-                        {{ member.gamertag }}
-                        {% if is_me_banned %}<span style="color:#f44336; font-size:0.8em; font-weight:bold;">(GESPERRT)</span>{% endif %}
+                        
+                        <strong style="color: white; margin-left: 5px;">{{ member.gamertag }}</strong>
+                        <span style="color: #888; font-size: 0.85em; margin-left: 5px;">({{ member.activision_id }})</span>
+                        
+                        {% if is_me_banned %}
+                            <span style="color:#f44336; font-size:0.8em; font-weight:bold; margin-left:5px;">(GESPERRT)</span>
+                        {% endif %}
                     </label>
                     {% endfor %}
                 {% else %}

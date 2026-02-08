@@ -92,6 +92,23 @@ def cup_match_view(match_id):
         flash("Kein Zugriff.", "error")
         return redirect(url_for('main.dashboard'))
 
+    # --- NEU: Activision IDs laden ---
+    # Wir erstellen ein Dictionary: {'Gamertag': 'ActivisionID', ...}
+    player_ids = {}
+    
+    # IDs von Team A laden
+    user_a = User.query.filter_by(username=match.team_a).first()
+    if user_a:
+        for m in user_a.team_members:
+            player_ids[m.gamertag] = m.activision_id
+            
+    # IDs von Team B laden
+    user_b = User.query.filter_by(username=match.team_b).first()
+    if user_b:
+        for m in user_b.team_members:
+            player_ids[m.gamertag] = m.activision_id
+    # --------------------------------
+
     if request.method == 'POST':
         # Admin Check-In
         if 'confirm_lineups' in request.form and (current_user.is_admin or current_user.is_mod):
@@ -133,8 +150,8 @@ def cup_match_view(match_id):
     return render_template('cup_match.html', 
                            match=match, 
                            all_maps=Map.query.filter_by(is_archived=False).all(), 
-                           picked=match.get_picked())
-
+                           picked=match.get_picked(),
+                           player_ids=player_ids) # <--- NEU: IDs übergeben
 # --- 4. CUP DETAILS (TABELLE) ---
 @cup_bp.route('/cup/<int:cup_id>')
 @login_required
