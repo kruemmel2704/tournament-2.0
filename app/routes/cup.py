@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models import Cup, CupMatch, User, Map
 from app.extensions import db
 import json
+from datetime import datetime
 
 cup_bp = Blueprint('cup', __name__)
 
@@ -31,12 +32,16 @@ def setup_cup_rosters(cup_id):
     if not current_user.is_admin: return redirect(url_for('main.dashboard'))
     cup = Cup.query.get_or_404(cup_id)
     
+    # Teilnehmer-Namen laden
     team_names = cup.get_participants()
+    # User-Objekte dazu laden
     teams_obj = User.query.filter(User.username.in_(team_names)).all()
 
     if request.method == 'POST':
         cup_rosters = {}
         for team in teams_obj:
+            # Hier holen wir die ausgewählten Spieler für das Team
+            # Gebannte Spieler sind im HTML disabled und werden daher hier NICHT mitgesendet -> Perfekt!
             selected_players = request.form.getlist(f'roster_{team.id}')
             cup_rosters[team.username] = selected_players
         
@@ -52,7 +57,7 @@ def setup_cup_rosters(cup_id):
                 t2 = teams_list[len(teams_list)-1-i]
                 
                 if t1 and t2:
-                    # Lineups holen
+                    # Lineups aus dem soeben gespeicherten Roster holen
                     lineup_a = cup_rosters.get(t1, [])
                     lineup_b = cup_rosters.get(t2, [])
                     
@@ -68,13 +73,14 @@ def setup_cup_rosters(cup_id):
                     )
                     db.session.add(match)
             
-            teams_list.insert(1, teams_list.pop())
+            teams_list.insert(1, teams_list.pop()) # Rotation
 
         db.session.commit()
-        flash(f"Cup '{cup.name}' gestartet!", "success")
+        flash(f"Cup '{cup.name}' erfolgreich gestartet!", "success")
         return redirect(url_for('main.dashboard'))
 
-    return render_template('setup_cup_rosters.html', cup=cup, teams=teams_obj)
+    # WICHTIG: 'now' übergeben, damit das HTML prüfen kann, wer gebannt ist
+    return render_template('setup_cup_rosters.html', cup=cup, teams=teams_obj, now=datetime.now())
 
 # --- 3. EINZELNES MATCH ANSEHEN ---
 @cup_bp.route('/cup_match/<int:match_id>', methods=['GET', 'POST'])

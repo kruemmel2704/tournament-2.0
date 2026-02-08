@@ -15,13 +15,26 @@
                     
                     {% if team.team_members %}
                         {% for member in team.team_members %}
-                        <label style="display: flex; gap: 10px; padding: 5px; cursor: pointer; border-bottom: 1px solid #222;">
-                            <input type="checkbox" name="roster_{{ team.id }}" value="{{ member.gamertag }}" checked>
-                            <div>
-                                <span style="font-weight: bold; display: block;">{{ member.gamertag }}</span>
-                                <span style="font-size: 0.8rem; color: #aaa;">{{ member.platform }} | {{ member.activision_id }}</span>
-                            </div>
-                        </label>
+                            
+                            {% set is_banned = member.banned_until and member.banned_until > now %}
+                            
+                            <label style="display: flex; gap: 10px; padding: 8px; border-bottom: 1px solid #222; align-items: center; 
+                                          {% if is_banned %}opacity: 0.5; background: rgba(244, 67, 54, 0.1); cursor: not-allowed;{% else %}cursor: pointer;{% endif %}"
+                                   {% if is_banned %}title="🚫 GEBANNT: {{ member.ban_reason or 'Kein Grund' }}"{% endif %}>
+                                
+                                <input type="checkbox" name="roster_{{ team.id }}" value="{{ member.gamertag }}" 
+                                       {% if is_banned %}disabled{% else %}checked{% endif %}>
+                                
+                                <div>
+                                    <span style="font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                                        {{ member.gamertag }}
+                                        {% if is_banned %}
+                                            <span style="font-size: 0.7rem; background: #d32f2f; color: white; padding: 2px 4px; border-radius: 4px;">BANNED</span>
+                                        {% endif %}
+                                    </span>
+                                    <span style="font-size: 0.8rem; color: #aaa;">{{ member.platform }} | {{ member.activision_id }}</span>
+                                </div>
+                            </label>
                         {% endfor %}
                     {% else %}
                         <div style="color: var(--danger); font-style: italic;">
