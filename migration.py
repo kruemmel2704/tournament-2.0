@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, MetaData, Table, select, text
 import os
 
-# Konfiguration (Pfade prüfen!)
+# Konfiguration
 OLD_DB_PATH = os.path.abspath("./instance/tournament.db.old")
 NEW_DB_PATH = os.path.abspath("./instance/tournament.db")
 
@@ -10,7 +10,7 @@ OLD_DB_URI = f"sqlite:///{OLD_DB_PATH}"
 NEW_DB_URI = f"sqlite:///{NEW_DB_PATH}"
 
 def migrate():
-    print("🚀 Starte Migration mit SQLAlchemy...")
+    print("🚀 Starte VOLLSTÄNDIGE Migration (Alles wird überschrieben)...")
 
     if not os.path.exists(OLD_DB_PATH):
         print(f"❌ FEHLER: Alte DB nicht gefunden: {OLD_DB_PATH}")
@@ -33,14 +33,14 @@ def migrate():
     # Transaktion starten
     with old_engine.connect() as old_conn, new_engine.begin() as new_conn:
         
-        # WICHTIG: Foreign Keys ausschalten, damit wir Tabellen leeren können
+        # Foreign Keys ausschalten (wichtig beim Leeren der Tabellen)
         new_conn.execute(text("PRAGMA foreign_keys=OFF"))
 
         for table_name, new_table in new_meta.tables.items():
             
-            # Gibt es die Tabelle in der alten DB?
+            # Check: Existiert Tabelle im Backup?
             if table_name not in old_meta.tables:
-                print(f"⚠️  Tabelle '{table_name}' existiert nicht in alter DB. Überspringe...")
+                print(f"⚠️  Tabelle '{table_name}' fehlt im Backup. Überspringe...")
                 continue
             
             old_table = old_meta.tables[table_name]
@@ -49,12 +49,14 @@ def migrate():
             common_columns = set(c.name for c in new_table.columns) & set(c.name for c in old_table.columns)
             
             if not common_columns:
-                print(f"⚠️  Tabelle '{table_name}': Keine gemeinsamen Spalten. Überspringe...")
+                print(f"⚠️  Tabelle '{table_name}': Keine gemeinsamen Spalten.")
                 continue
 
-            print(f"✅ Migriere '{table_name}' ({len(common_columns)} Spalten)...")
+            print(f"✅ Migriere '{table_name}'...")
 
-            # 1. ZIEL-TABELLE LEEREN (Löst dein Problem!)
+            # 1. ZIEL-TABELLE KOMPLETT LEEREN
+            # Damit stellen wir sicher, dass ALLE alten Daten Platz haben
+            # und keine "Unique Constraint" Fehler auftreten.
             new_conn.execute(new_table.delete())
 
             # 2. ALTE DATEN HOLEN
@@ -68,14 +70,14 @@ def migrate():
                     for row in rows
                 ]
                 new_conn.execute(new_table.insert(), data_to_insert)
-                print(f"   -> {len(rows)} Zeilen kopiert.")
+                print(f"   -> {len(rows)} Zeilen wiederhergestellt.")
             else:
                 print("   -> Tabelle war leer.")
 
-        # Foreign Keys wieder an (passiert automatisch beim Verbindungsabbau, aber sauber ist sauber)
+        # Foreign Keys wieder an
         new_conn.execute(text("PRAGMA foreign_keys=ON"))
 
-    print("\n🏁 Migration erfolgreich abgeschlossen!")
+    print("\n🏁 Migration abgeschlossen! Alle alten Daten sind jetzt aktiv.")
 
 if __name__ == "__main__":
     migrate()

@@ -173,6 +173,27 @@
     <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 40px; color: var(--text-muted);">
         Aktuelle Struktur
     </h3>
+
+    {% if admins %}
+    <div class="clan-card" style="border-left-color: var(--warning);">
+        <div class="clan-header" style="color: var(--warning);">
+            <span>👑 Administratoren</span>
+        </div>
+        {% for admin in admins %}
+        <div class="team-item">
+            <span>
+                👑 {{ admin.username }} 
+                {% if admin.id == current_user.id %} <small style="color:var(--text-muted)">(Du)</small> {% endif %}
+            </span>
+            {% if admin.id != current_user.id %}
+            <form action="{{ url_for('admin.delete_user', user_id=admin.id) }}" method="POST" onsubmit="return confirm('Admin {{ admin.username }} wirklich löschen? Er verliert alle Rechte!');">
+                <button type="submit" class="btn-icon" style="color: var(--danger);">✕</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     
     {% if moderators %}
     <div class="clan-card" style="border-left-color: #00bcd4;">

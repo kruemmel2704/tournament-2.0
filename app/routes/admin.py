@@ -14,9 +14,14 @@ admin_bp = Blueprint('admin', __name__)
 @login_required
 def users_manager():
     if not current_user.is_admin: return redirect(url_for('main.dashboard'))
-    # Hier werden die User ohne Clan geladen (clan_id=None)
-    users_no_clan = User.query.filter_by(clan_id=None, is_admin=False, is_mod=False).all()
-    return render_template('users.html', clans=Clan.query.all(), users_no_clan=users_no_clan, moderators=User.query.filter_by(is_mod=True).all())
+    
+    users_no_clan = User.query.filter_by(clan_id=None, is_admin=False, is_mod=False, is_clan_admin=False).all()
+    
+    return render_template('users.html', 
+                           clans=Clan.query.all(), 
+                           users_no_clan=users_no_clan, 
+                           moderators=User.query.filter_by(is_mod=True, is_admin=False).all(), # Mods die keine Admins sind
+                           admins=User.query.filter_by(is_admin=True).all()) # <--- NEU: Alle Admins laden
 
 @admin_bp.route('/maps')
 @login_required

@@ -11,6 +11,48 @@ import secrets
 
 main_bp = Blueprint('main', __name__)
 
+@main_bp.before_app_request
+def check_first_run():
+    # Ausnahmen: Statische Dateien (CSS/JS) und die Setup-Seite selbst nicht blockieren
+    if request.endpoint and ('static' in request.endpoint or 'main.setup' in request.endpoint or 'main.do_setup' in request.endpoint):
+        return
+
+    # Prüfen, ob IRGENDEIN Admin existiert
+    admin_exists = User.query.filter_by(is_admin=True).first()
+    
+    # Wenn KEIN Admin da ist -> Ab zum Setup!
+    if not admin_exists:
+        return redirect(url_for('main.setup'))
+
+# --- SETUP ROUTEN ---
+@main_bp.route('/setup', methods=['GET'])
+def setup():
+    # Sicherheitscheck: Wenn schon ein Admin da ist, darf man hier nicht mehr hin
+    if User.query.filter_by(is_admin=True).first():
+        return redirect(url_for('main.dashboard'))
+    return render_template('setup.html')
+
+@main_bp.route('/setup', methods=['POST'])
+def do_setup():
+    # Doppelt hält besser: Check ob schon Admin da
+    if User.query.filter_by(is_admin=True).first():
+        return redirect(url_for('main.dashboard'))
+        
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    if username and password:
+        hashed_pw = generate_password_hash(password, method='pbkdf2:sha256')
+        # Erster User ist Admin UND Mod
+        new_admin = User(username=username, password=hashed_pw, is_admin=True, is_mod=True)
+        db.session.add(new_admin)
+        db.session.commit()
+        flash('Installation erfolgreich! Bitte einloggen.', 'success')
+        return redirect(url_for('auth.login')) # Oder main.dashboard wenn auto-login gewünscht
+    
+    flash('Bitte beide Felder ausfüllen.', 'error')
+    return redirect(url_for('main.setup'))
+
 # --- DASHBOARD ---
 @main_bp.route('/')
 @main_bp.route('/dashboard')
