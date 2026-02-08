@@ -75,36 +75,50 @@
     </div>
 
     {% if members_a or members_b %}
-        {% set banned_players = [] %}
+        {% set ns = namespace(has_bans=False) %}
         
+        {# Prüfen ob Bans existieren #}
         {% for m in members_a %}
-            {% if m.banned_until and m.banned_until > now %}
-                {% do banned_players.append({'name': m.gamertag, 'team': match.team_a, 'reason': m.ban_reason, 'until': m.banned_until}) %}
-            {% endif %}
+            {% if m.banned_until and m.banned_until > now %}{% set ns.has_bans = True %}{% endif %}
         {% endfor %}
-        
         {% for m in members_b %}
-            {% if m.banned_until and m.banned_until > now %}
-                {% do banned_players.append({'name': m.gamertag, 'team': match.team_b, 'reason': m.ban_reason, 'until': m.banned_until}) %}
-            {% endif %}
+            {% if m.banned_until and m.banned_until > now %}{% set ns.has_bans = True %}{% endif %}
         {% endfor %}
 
-        {% if banned_players %}
+        {% if ns.has_bans %}
         <div class="ban-warning-box">
             <div class="ban-warning-title">
                 ⛔ ACHTUNG: Gesperrte Spieler im Match!
             </div>
             <div style="color: #ddd;">Folgende Spieler sind aktuell gesperrt und dürfen nicht antreten:</div>
             <ul style="margin: 0 0 0 20px; padding: 0;">
-                {% for bp in banned_players %}
-                <li style="margin-top: 5px;">
-                    <strong style="color: white;">{{ bp.name }}</strong> 
-                    <span style="color: #aaa;">(Team: {{ bp.team }})</span>
-                    <br>
-                    <span style="font-size: 0.9em; color: #f44336;">Grund: {{ bp.reason or 'Admin Bann' }}</span>
-                    <span style="font-size: 0.8em; color: #888;"> — Bis: {{ bp.until.strftime('%d.%m.%Y %H:%M') }}</span>
-                </li>
+                
+                {# Team A Bans auflisten #}
+                {% for m in members_a %}
+                    {% if m.banned_until and m.banned_until > now %}
+                    <li style="margin-top: 5px;">
+                        <strong style="color: white;">{{ m.gamertag }}</strong> 
+                        <span style="color: #aaa;">(Team: {{ match.team_a }})</span>
+                        <br>
+                        <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
+                        <span style="font-size: 0.8em; color: #888;"> — Bis: {{ m.banned_until.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </li>
+                    {% endif %}
                 {% endfor %}
+
+                {# Team B Bans auflisten #}
+                {% for m in members_b %}
+                    {% if m.banned_until and m.banned_until > now %}
+                    <li style="margin-top: 5px;">
+                        <strong style="color: white;">{{ m.gamertag }}</strong> 
+                        <span style="color: #aaa;">(Team: {{ match.team_b }})</span>
+                        <br>
+                        <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
+                        <span style="font-size: 0.8em; color: #888;"> — Bis: {{ m.banned_until.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
             </ul>
         </div>
         {% endif %}
