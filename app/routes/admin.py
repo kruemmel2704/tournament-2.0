@@ -10,21 +10,32 @@ from app.utils import allowed_file
 
 admin_bp = Blueprint('admin', __name__)
 
-@admin_bp.route('/users')
+@main_bp.route('/users')
 @login_required
-def users_manager():
-    if not current_user.is_admin: return redirect(url_for('main.dashboard'))
+def users():
+    if not current_user.is_admin:
+        flash('Kein Zugriff.', 'error')
+        return redirect(url_for('main.dashboard'))
     
-    # Hier laden wir die verschiedenen User-Gruppen
-    users_no_clan = User.query.filter_by(clan_id=None, is_admin=False, is_mod=False).all()
-    moderators = User.query.filter_by(is_mod=True, is_admin=False).all() # Mods, die keine Admins sind
-    admins = User.query.filter_by(is_admin=True).all() # <--- NEU: Alle Admins laden!
+    clans = Clan.query.all()
+    moderators = User.query.filter_by(is_mod=True).all()
+    
+    # NEU: Auch die Admins laden!
+    admins = User.query.filter_by(is_admin=True).all()
+
+    # Freie Teams: Kein Clan, kein Admin/Mod/ClanAdmin
+    users_no_clan = User.query.filter(
+        User.clan_id == None,
+        User.is_admin == False, 
+        User.is_mod == False,
+        User.is_clan_admin == False
+    ).all()
 
     return render_template('users.html', 
-                           clans=Clan.query.all(), 
-                           users_no_clan=users_no_clan, 
-                           moderators=moderators,
-                           admins=admins) # <--- NEU: Variable an Template übergeben
+                           clans=clans, 
+                           moderators=moderators, 
+                           users_no_clan=users_no_clan,
+                           admins=admins)  # <--- WICHTIG: Variable hier übergeben
 
 @admin_bp.route('/maps')
 @login_required
