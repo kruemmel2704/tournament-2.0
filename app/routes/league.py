@@ -124,7 +124,11 @@ def league_details(league_id):
 @login_required
 def league_match_view(match_id):
     match = LeagueMatch.query.get_or_404(match_id)
-    active = match.team_a if match.state.endswith('_a') else (match.team_b if match.state.endswith('_b') else None)
+    
+    # Bestimme aktives Team für Banns/Picks
+    active = None
+    if match.state.endswith('_a'): active = match.team_a
+    elif match.state.endswith('_b'): active = match.team_b
     
     if request.method == 'POST':
         if 'selected_map' in request.form and (current_user.is_admin or current_user.username == active):
@@ -156,8 +160,25 @@ def league_match_view(match_id):
             match.lobby_code = request.form.get('lobby_code'); db.session.commit()
             
         return redirect(url_for('league.league_match_view', match_id=match.id))
-        
-    return render_template('league_match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active, now=datetime.now())
+    
+    # --- WICHTIG: Mitglieder laden für die Bann-Anzeige ---
+    user_a = User.query.filter_by(username=match.team_a).first()
+    members_a = user_a.team_members if user_a else []
+
+    user_b = User.query.filter_by(username=match.team_b).first()
+    members_b = user_b.team_members if user_b else []
+    # ----------------------------------------------------
+
+    return render_template('league_match.html', 
+                           match=match, 
+                           all_maps=Map.query.filter_by(is_archived=False).all(), 
+                           banned=match.get_banned(), 
+                           picked=match.get_picked(), 
+                           active_team=active, 
+                           now=datetime.now(),
+                           members_a=members_a,  # Hier übergeben!
+                           members_b=members_b   # Hier übergeben!
+                           )
 
 @league_bp.route('/archive_league/<int:league_id>', methods=['POST'])
 @login_required
