@@ -40,6 +40,47 @@
       {% endif %}
     {% endwith %}
 
+    {% if banned_members %}
+    <div class="card" style="border-left: 5px solid #d32f2f; margin-bottom: 30px; background: rgba(211, 47, 47, 0.05);">
+        <div class="card-header" style="border-bottom: 1px solid rgba(211, 47, 47, 0.3);">
+            <h3 style="color: #f44336; margin: 0; display: flex; align-items: center; gap: 10px;">
+                ⛔ Aktuelle Sperren (Bannliste)
+            </h3>
+        </div>
+        <div class="card-body">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #444; color: #aaa; font-size: 0.85rem;">
+                            <th style="padding: 10px;">Spieler</th>
+                            <th style="padding: 10px;">Team / Clan</th>
+                            <th style="padding: 10px;">Grund</th>
+                            <th style="padding: 10px;">Gesperrt bis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in banned_members %}
+                        <tr style="border-bottom: 1px solid #333;">
+                            <td style="padding: 10px; font-weight: bold; color: #fff;">
+                                {{ m.gamertag }}
+                            </td>
+                            <td style="padding: 10px; color: #ccc;">
+                                {{ m.owner.username }}
+                            </td>
+                            <td style="padding: 10px; color: #f44336;">
+                                {{ m.ban_reason or 'Admin Bann' }}
+                            </td>
+                            <td style="padding: 10px; font-family: monospace; color: #aaa;">
+                                {{ m.banned_until.strftime('%d.%m.%Y %H:%M') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% if current_user.is_mod %}
     <div class="card" style="margin-bottom: 30px;">
         <div class="card-header">

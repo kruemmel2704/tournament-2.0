@@ -65,10 +65,15 @@ def dashboard():
     active_leagues = League.query.filter_by(is_archived=False).all()
     archived_leagues = League.query.filter_by(is_archived=True).all()
 
+    # --- NEU: Gebannte Spieler laden ---
+    # Wir holen alle Spieler, deren Bann-Zeit in der Zukunft liegt
+    banned_members = TeamMember.query.filter(TeamMember.banned_until > datetime.now()).all()
+
     return render_template('dashboard.html',
                            active_tournaments=active_tournaments, archived_tournaments=archived_tournaments,
                            active_cups=active_cups, archived_cups=archived_cups,
-                           active_leagues=active_leagues, archived_leagues=archived_leagues)
+                           active_leagues=active_leagues, archived_leagues=archived_leagues,
+                           banned_members=banned_members) # <--- Variable übergeben!
 
 # --- CLAN / USERS MANAGER (NEU) ---
 @main_bp.route('/users')
