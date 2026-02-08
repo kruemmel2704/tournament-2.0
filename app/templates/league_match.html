@@ -2,7 +2,7 @@
 
 {% block content %}
 <style>
-    /* Gleicher Style wie Match HTML für Konsistenz */
+    /* Styles wie gehabt ... */
     .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
     .map-card { background: #2a2a2a; border: 2px solid #444; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .map-image { width: 100%; height: 80px; object-fit: cover; display: block; }
@@ -29,16 +29,29 @@
 
     /* BANNED PLAYER WARNING STYLE */
     .ban-warning-box {
-        margin-top: 15px;
-        background: rgba(211, 47, 47, 0.1);
+        margin: 20px 0; /* Mehr Abstand */
+        background: rgba(211, 47, 47, 0.15);
         border: 1px solid #d32f2f;
-        border-radius: 4px;
-        padding: 10px;
+        border-radius: 8px;
+        padding: 20px;
         color: #ffcdd2;
-        font-size: 0.9rem;
+        font-size: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 0 15px rgba(211, 47, 47, 0.2);
     }
-
-    @media (max-width: 768px) { .map-grid { grid-template-columns: repeat(2, 1fr); } }
+    .ban-warning-title {
+        color: #f44336; 
+        font-weight: bold; 
+        display: flex; 
+        align-items: center; 
+        gap: 10px; 
+        font-size: 1.1rem;
+        border-bottom: 1px solid rgba(244, 67, 54, 0.3);
+        padding-bottom: 10px;
+        margin-bottom: 5px;
+    }
 </style>
 
 <div class="container">
@@ -61,6 +74,41 @@
         <h3 style="margin: 0; font-size: 1.2rem;" id="statusHeadline">Lade Status...</h3>
     </div>
 
+    {% if members_a or members_b %}
+        {% set banned_players = [] %}
+        
+        {% for m in members_a %}
+            {% if m.banned_until and m.banned_until > now %}
+                {% do banned_players.append({'name': m.gamertag, 'team': match.team_a, 'reason': m.ban_reason, 'until': m.banned_until}) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% for m in members_b %}
+            {% if m.banned_until and m.banned_until > now %}
+                {% do banned_players.append({'name': m.gamertag, 'team': match.team_b, 'reason': m.ban_reason, 'until': m.banned_until}) %}
+            {% endif %}
+        {% endfor %}
+
+        {% if banned_players %}
+        <div class="ban-warning-box">
+            <div class="ban-warning-title">
+                ⛔ ACHTUNG: Gesperrte Spieler im Match!
+            </div>
+            <div style="color: #ddd;">Folgende Spieler sind aktuell gesperrt und dürfen nicht antreten:</div>
+            <ul style="margin: 0 0 0 20px; padding: 0;">
+                {% for bp in banned_players %}
+                <li style="margin-top: 5px;">
+                    <strong style="color: white;">{{ bp.name }}</strong> 
+                    <span style="color: #aaa;">(Team: {{ bp.team }})</span>
+                    <br>
+                    <span style="font-size: 0.9em; color: #f44336;">Grund: {{ bp.reason or 'Admin Bann' }}</span>
+                    <span style="font-size: 0.8em; color: #888;"> — Bis: {{ bp.until.strftime('%d.%m.%Y %H:%M') }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    {% endif %}
     <div id="votingSection">
         <form method="POST">
             <div class="map-grid">
@@ -93,7 +141,7 @@
             <input type="hidden" name="submit_scores" value="true">
             
             <div style="overflow-x: auto;">
-                <table style="width:100%; border-collapse: collapse; min-width: 300px; margin-bottom: 5px;">
+                <table style="width:100%; border-collapse: collapse; min-width: 300px; margin-bottom: 15px;">
                     <thead>
                         <tr style="border-bottom: 1px solid #555;">
                             <th>Map</th>
@@ -119,36 +167,6 @@
                 </table>
             </div>
 
-            {% if members_a or members_b %}
-                {% set has_bans = false %}
-                {% for m in members_a if m.banned_until and m.banned_until > now %} {% set has_bans = true %} {% endfor %}
-                {% for m in members_b if m.banned_until and m.banned_until > now %} {% set has_bans = true %} {% endfor %}
-
-                {% if has_bans %}
-                <div class="ban-warning-box">
-                    <strong style="color: #f44336;">⛔ GEBANNTE SPIELER IM ROSTER:</strong>
-                    <ul style="margin: 5px 0 0 20px; padding: 0;">
-                        {% for m in members_a %}
-                            {% if m.banned_until and m.banned_until > now %}
-                            <li>
-                                <strong>{{ m.gamertag }}</strong> ({{ match.team_a }}) - 
-                                <em>{{ m.ban_reason or 'Regelverstoß' }}</em>
-                            </li>
-                            {% endif %}
-                        {% endfor %}
-                        {% for m in members_b %}
-                            {% if m.banned_until and m.banned_until > now %}
-                            <li>
-                                <strong>{{ m.gamertag }}</strong> ({{ match.team_b }}) - 
-                                <em>{{ m.ban_reason or 'Regelverstoß' }}</em>
-                            </li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-            {% endif %}
-            
             <h4 style="margin: 10px 0;">Lineup wählen</h4>
             <div style="margin-bottom: 15px;">
                 {% if current_user.team_members %}
@@ -157,7 +175,7 @@
                     <label style="display: block; margin-bottom: 5px; background: #333; padding: 8px; border-radius: 4px; {% if is_me_banned %}opacity:0.6;{% endif %}">
                         <input type="checkbox" name="lineup_member" value="{{ member.gamertag }}" {% if is_me_banned %}disabled{% endif %}> 
                         {{ member.gamertag }}
-                        {% if is_me_banned %}<span style="color:#f44336; font-size:0.8em; font-weight:bold;">(BANNED)</span>{% endif %}
+                        {% if is_me_banned %}<span style="color:#f44336; font-size:0.8em; font-weight:bold;">(GESPERRT)</span>{% endif %}
                     </label>
                     {% endfor %}
                 {% else %}
