@@ -6,11 +6,35 @@
     <title>Infernus eSports</title>
     
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#121212"> <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#121212"> 
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        body::before {
+            content: "";
+            position: fixed; /* Fixiert: Bild scrollt nicht weg */
+            top: 0; 
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Hinter den Inhalt schieben */
+            
+            /* Pfad zum Bild: app/static/img/background.png */
+            background-image: url("{{ url_for('static', filename='img/background.png') }}");
+            
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover; /* Füllt den Bildschirm immer komplett aus */
+            
+            /* Hier die Sichtbarkeit steuern (0.05 = sehr schwach, 0.2 = deutlich) */
+            opacity: 0.05; 
+            pointer-events: none; /* Klicks gehen durch das Bild durch */
+        }
+    </style>
 </head>
 <body>
 
@@ -31,10 +55,9 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            // Wichtig: Lädt sw.js von der Root-Route (definiert in main.py), nicht direkt aus static!
             navigator.serviceWorker.register("/sw.js")
-            .then(() => console.log("Service Worker aktiv"))
-            .catch(err => console.log("Service Worker Fehler:", err));
+                .then(() => console.log("Service Worker Registered"))
+                .catch(e => console.log("SW Fail:", e));
         }
     </script>
 </body>
