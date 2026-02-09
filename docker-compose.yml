@@ -12,6 +12,7 @@ services:
       # Es spiegelt deinen kompletten Projektordner in den Container.
       # Datenbank & Bilder landen also direkt auf deiner Festplatte.
       - .:/app
+    working_dir: /app
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
