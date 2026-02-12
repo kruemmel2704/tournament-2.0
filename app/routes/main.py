@@ -5,9 +5,12 @@ from app.models import User, TeamMember, Tournament, Cup, League, Clan, Match, M
 from app.extensions import db
 from sqlalchemy import func
 from datetime import datetime, timedelta
+from app.utils import get_current_time
 import os
 import json
 import secrets
+from werkzeug.utils import secure_filename
+from app.utils import allowed_file
 
 main_bp = Blueprint('main', __name__)
 
@@ -339,3 +342,68 @@ def ban_player(member_id):
 
     db.session.commit()
     return redirect(url_for('main.player_list'))
+
+# --- LOGO UPLOADS ---
+@main_bp.route('/upload_logo', methods=['POST'])
+@login_required
+def upload_logo():
+    if 'logo' not in request.files:
+        flash('Keine Datei ausgewählt.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    file = request.files['logo']
+    if file.filename == '':
+        flash('Keine Datei ausgewählt.', 'error')
+        return redirect(url_for('main.dashboard'))
+        
+    if file and allowed_file(file.filename):
+        filename = secure_filename(f"user_{current_user.id}_{secrets.token_hex(4)}.{file.filename.rsplit('.', 1)[1].lower()}")
+        upload_path = os.path.join(current_app.config['LOGO_UPLOAD_FOLDER'], filename)
+        
+        os.makedirs(current_app.config['LOGO_UPLOAD_FOLDER'], exist_ok=True)
+        
+        file.save(upload_path)
+        
+        current_user.logo_file = filename
+        db.session.commit()
+        flash('Logo erfolgreich hochgeladen!', 'success')
+    else:
+        flash('Ungültiges Dateiformat (nur Bilder erlaubt).', 'error')
+        
+    return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/upload_clan_logo', methods=['POST'])
+@login_required
+def upload_clan_logo():
+    if not current_user.is_clan_admin:
+        return redirect(url_for('main.dashboard'))
+        
+    if 'clan_logo' not in request.files:
+        flash('Keine Datei ausgewählt.', 'error')
+        return redirect(url_for('main.clan_dashboard'))
+    
+    file = request.files['clan_logo']
+    if file.filename == '':
+        flash('Keine Datei ausgewählt.', 'error')
+        return redirect(url_for('main.clan_dashboard'))
+        
+    if file and allowed_file(file.filename):
+        clan = Clan.query.get(current_user.clan_id)
+        if not clan:
+            flash('Clan nicht gefunden.', 'error')
+            return redirect(url_for('main.clan_dashboard'))
+
+        filename = secure_filename(f"clan_{clan.id}_{secrets.token_hex(4)}.{file.filename.rsplit('.', 1)[1].lower()}")
+        upload_path = os.path.join(current_app.config['LOGO_UPLOAD_FOLDER'], filename)
+        
+        os.makedirs(current_app.config['LOGO_UPLOAD_FOLDER'], exist_ok=True)
+        
+        file.save(upload_path)
+        
+        clan.logo_file = filename
+        db.session.commit()
+        flash('Clan Logo erfolgreich hochgeladen!', 'success')
+    else:
+        flash('Ungültiges Dateiformat.', 'error')
+        
+    return redirect(url_for('main.clan_dashboard'))

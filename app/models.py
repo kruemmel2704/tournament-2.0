@@ -1,20 +1,23 @@
 from .extensions import db
 from flask_login import UserMixin
-from .utils import calculate_map_wins, safe_json_load
+from .utils import calculate_map_wins, safe_json_load, get_current_time, strip_clan_tag
 from datetime import datetime
 import json
 
 class Clan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    logo_file = db.Column(db.String(120), nullable=True) # Custom Logo
     # Beziehung zu Usern
     members = db.relationship('User', backref='clan', lazy=True)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
+    logo_file = db.Column(db.String(120), nullable=True) # Custom Team Logo
     password = db.Column(db.String(150), nullable=True)
     token = db.Column(db.String(5), nullable=True)
+    fcm_token = db.Column(db.String(255), nullable=True) # Firebase Cloud Messaging Token
     
     # Rechte
     is_admin = db.Column(db.Boolean, default=False)
@@ -26,6 +29,10 @@ class User(UserMixin, db.Model):
     
     # Roster / Team Member Management (Legacy Member entfernt)
     team_members = db.relationship('TeamMember', backref='owner', lazy=True)
+
+    @property
+    def display_name(self):
+        return strip_clan_tag(self.username)
 
 class TeamMember(db.Model):
     """Repräsentiert einen Spieler/Account in einem Roster (z.B. für verschiedene Games)"""
@@ -40,7 +47,7 @@ class TeamMember(db.Model):
     @property
     def is_banned(self):
         # Prüft, ob ein Bann aktiv ist
-        if self.banned_until and self.banned_until > datetime.now():
+        if self.banned_until and self.banned_until > get_current_time():
             return True
         return False
 
@@ -102,6 +109,22 @@ class Match(db.Model):
         u = User.query.filter_by(username=self.team_b).first()
         return u.clan.name if u and u.clan else None
 
+    @property
+    def team_a_logo(self):
+        u = User.query.filter_by(username=self.team_a).first()
+        if u:
+            if u.logo_file: return u.logo_file
+            if u.clan and u.clan.logo_file: return u.clan.logo_file
+        return None
+
+    @property
+    def team_b_logo(self):
+        u = User.query.filter_by(username=self.team_b).first()
+        if u:
+            if u.logo_file: return u.logo_file
+            if u.clan and u.clan.logo_file: return u.clan.logo_file
+        return None
+
 class Cup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -158,11 +181,28 @@ class CupMatch(db.Model):
         u = User.query.filter_by(username=self.team_b).first()
         return u.clan.name if u and u.clan else None
 
+    @property
+    def team_a_logo(self):
+        u = User.query.filter_by(username=self.team_a).first()
+        if u:
+            if u.logo_file: return u.logo_file
+            if u.clan and u.clan.logo_file: return u.clan.logo_file
+        return None
+
+    @property
+    def team_b_logo(self):
+        u = User.query.filter_by(username=self.team_b).first()
+        if u:
+            if u.logo_file: return u.logo_file
+            if u.clan and u.clan.logo_file: return u.clan.logo_file
+        return None
+
 class League(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     is_archived = db.Column(db.Boolean, default=False)
     participants = db.Column(db.Text, default='[]')
+    start_date = db.Column(db.Date, nullable=True) # Start der Liga (Montag der ersten Woche)
     matches = db.relationship('LeagueMatch', backref='league', lazy=True, cascade="all, delete-orphan")
     def get_participants(self): return safe_json_load(self.participants)
 
@@ -173,6 +213,11 @@ class LeagueMatch(db.Model):
     team_a = db.Column(db.String(100), nullable=False)
     team_b = db.Column(db.String(100), nullable=False)
     round_number = db.Column(db.Integer, default=1)
+    match_week = db.Column(db.Integer, default=1) # Spielwoche (1, 2, 3...)
+    scheduled_date = db.Column(db.DateTime, nullable=True) # Finaler Termin
+    proposed_date_a = db.Column(db.DateTime, nullable=True) # Vorschlag Team A
+    proposed_date_b = db.Column(db.DateTime, nullable=True) # Vorschlag Team B
+    
     state = db.Column(db.String(50), default='ban_1_a') 
     lobby_code = db.Column(db.String(50), nullable=True)
     
@@ -184,7 +229,12 @@ class LeagueMatch(db.Model):
     lineup_a = db.Column(db.Text, default='[]') 
     lineup_b = db.Column(db.Text, default='[]')
     confirmed_a = db.Column(db.Boolean, default=False)
+    confirmed_a = db.Column(db.Boolean, default=False)
     confirmed_b = db.Column(db.Boolean, default=False)
+    
+    # NEU: Ready Check Flags
+    ready_a = db.Column(db.Boolean, default=False)
+    ready_b = db.Column(db.Boolean, default=False)
     
     # NEU: Beweis-Screenshots
     evidence_a = db.Column(db.String(150), nullable=True)
@@ -207,13 +257,29 @@ class LeagueMatch(db.Model):
         u = User.query.filter_by(username=self.team_b).first()
         return u.clan.name if u and u.clan else None
 
+    @property
+    def team_a_logo(self):
+        u = User.query.filter_by(username=self.team_a).first()
+        if u:
+            if u.logo_file: return u.logo_file
+            if u.clan and u.clan.logo_file: return u.clan.logo_file
+        return None
+
+    @property
+    def team_b_logo(self):
+        u = User.query.filter_by(username=self.team_b).first()
+        if u:
+            if u.logo_file: return u.logo_file
+            if u.clan and u.clan.logo_file: return u.clan.logo_file
+        return None
+
 # --- CHAT MODELS (Unverändert) ---
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     match_id = db.Column(db.Integer, db.ForeignKey('match.id'), nullable=False)
     username = db.Column(db.String(100), nullable=False)
     message = db.Column(db.String(500), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=get_current_time)
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
 
@@ -222,7 +288,7 @@ class CupChatMessage(db.Model):
     cup_match_id = db.Column(db.Integer, db.ForeignKey('cup_match.id'), nullable=False)
     username = db.Column(db.String(100), nullable=False)
     message = db.Column(db.String(500), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=get_current_time)
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
 
@@ -231,6 +297,6 @@ class LeagueChatMessage(db.Model):
     league_match_id = db.Column(db.Integer, db.ForeignKey('league_match.id'), nullable=False)
     username = db.Column(db.String(100), nullable=False)
     message = db.Column(db.String(500), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=get_current_time)
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)

@@ -3,41 +3,44 @@
 {% block content %}
 <div class="container">
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
         <div>
             <h1 style="margin: 0; font-size: 2rem; letter-spacing: -1px; color: #fff;">Dashboard</h1>
             <div style="color: var(--text-muted); margin-top: 5px;">
                 Willkommen, <strong style="color: var(--primary);">{{ current_user.username }}</strong>
             </div>
         </div>
-        
+
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="{{ url_for('main.rules') }}" class="btn btn-secondary btn-small" style="background: #333; border: 1px solid #555;">📜 Regelwerk</a>
+            <a href="{{ url_for('main.rules') }}" class="btn btn-secondary btn-small"
+                style="background: #333; border: 1px solid #555;">📜 Regelwerk</a>
 
             {# --- NEU: Button für Spieler-Management (Admins & Mods) --- #}
             {% if current_user.is_admin or current_user.is_mod %}
-                <a href="{{ url_for('main.player_list') }}" class="btn btn-secondary btn-small">🌍 Spieler Liste</a>
+            <a href="{{ url_for('main.player_list') }}" class="btn btn-secondary btn-small">🌍 Spieler Liste</a>
             {% endif %}
-            
+
             {% if current_user.is_admin %}
-                <a href="{{ url_for('admin.users_manager') }}" class="btn btn-secondary btn-small">👥 User Manager</a>
-                <a href="{{ url_for('admin.maps_manager') }}" class="btn btn-secondary btn-small">🗺️ Maps Manager</a>
+            <a href="{{ url_for('admin.users_manager') }}" class="btn btn-secondary btn-small">👥 User Manager</a>
+            <a href="{{ url_for('admin.maps_manager') }}" class="btn btn-secondary btn-small">🗺️ Maps Manager</a>
             {% endif %}
-            
+
             {% if current_user.clan_id %}
-                <a href="{{ url_for('main.clan_dashboard') }}" class="btn btn-secondary btn-small">🛡️ Mein Clan</a>
+            <a href="{{ url_for('main.clan_dashboard') }}" class="btn btn-secondary btn-small">🛡️ Mein Clan</a>
             {% endif %}
         </div>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="card" style="padding: 15px; margin-bottom: 25px; border-left: 4px solid {{ 'var(--success)' if category=='success' else 'var(--primary)' }}; background: #222;">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="card"
+        style="padding: 15px; margin-bottom: 25px; border-left: 4px solid {{ 'var(--success)' if category=='success' else 'var(--primary)' }}; background: #222;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
     {% endwith %}
 
     {% if banned_members %}
@@ -87,18 +90,55 @@
             <h3>🛡️ Moderator Einstellungen</h3>
         </div>
         <div class="card-body">
-            <form action="{{ url_for('main.mod_change_password') }}" method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="password" name="current_password" placeholder="Aktuelles PW" required style="flex: 1; min-width: 150px;">
-                <input type="password" name="new_password" placeholder="Neues PW" required style="flex: 1; min-width: 150px;">
-                <input type="password" name="confirm_password" placeholder="Bestätigen" required style="flex: 1; min-width: 150px;">
+            <form action="{{ url_for('main.mod_change_password') }}" method="POST"
+                style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="password" name="current_password" placeholder="Aktuelles PW" required
+                    style="flex: 1; min-width: 150px;">
+                <input type="password" name="new_password" placeholder="Neues PW" required
+                    style="flex: 1; min-width: 150px;">
+                <input type="password" name="confirm_password" placeholder="Bestätigen" required
+                    style="flex: 1; min-width: 150px;">
                 <button class="btn btn-secondary">Passwort ändern</button>
             </form>
         </div>
     </div>
     {% endif %}
 
+    <div class="card" style="margin-bottom: 30px;">
+        <div class="card-header">
+            <h3>👤 Mein Profil & Logo</h3>
+        </div>
+        <div class="card-body" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+
+            <div style="text-align: center;">
+                {% if current_user.logo_file %}
+                <img src="{{ url_for('static', filename='logos/' + current_user.logo_file) }}"
+                    style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 3px solid var(--primary); display: block;">
+                {% else %}
+                <div
+                    style="width: 100px; height: 100px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #555;">
+                    👤
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="flex: 1;">
+                <h4 style="margin-top: 0; margin-bottom: 10px;">Team Logo hochladen</h4>
+                <form action="{{ url_for('main.upload_logo') }}" method="POST" enctype="multipart/form-data"
+                    style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="file" name="logo" accept="image/*" required
+                        style="background: #222; padding: 10px; border-radius: 4px; border: 1px solid #444; color: #fff;">
+                    <button type="submit" class="btn">Hochladen</button>
+                    <div style="width: 100%; font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">
+                        Erlaubt: JPG, PNG, WEBP. Max 16MB.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="dash-grid">
-        
+
         <div class="card">
             <div class="card-header">
                 <h3>🏆 Turniere</h3>
@@ -106,29 +146,32 @@
             <ul class="item-list">
                 {% for t in active_tournaments %}
                 <li class="item-row">
-                    <a href="{{ url_for('tournament.tournament_tree', tournament_id=t.id) }}" style="font-weight: 600; flex: 1;">
+                    <a href="{{ url_for('tournament.tournament_tree', tournament_id=t.id) }}"
+                        style="font-weight: 600; flex: 1;">
                         {{ t.name }}
                     </a>
-                    
+
                     {% if current_user.is_admin %}
                     <div style="display:flex; gap: 5px;">
                         <form action="{{ url_for('tournament.archive_tournament', t_id=t.id) }}" method="POST">
                             <button class="btn-icon" title="Archivieren">📦</button>
                         </form>
-                        <form action="{{ url_for('tournament.delete_tournament', t_id=t.id) }}" method="POST" onsubmit="return confirm('Turnier wirklich löschen?');">
+                        <form action="{{ url_for('tournament.delete_tournament', t_id=t.id) }}" method="POST"
+                            onsubmit="return confirm('Turnier wirklich löschen?');">
                             <button class="btn-icon" style="color: var(--danger);" title="Löschen">✕</button>
                         </form>
                     </div>
                     {% endif %}
                 </li>
                 {% else %}
-                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">Keine aktiven Turniere</li>
+                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">
+                    Keine aktiven Turniere</li>
                 {% endfor %}
             </ul>
             {% if current_user.is_admin %}
-                <div class="card-body" style="padding-top: 0;">
-                    <a href="{{ url_for('tournament.create_tournament') }}" class="create-btn">+ Turnier erstellen</a>
-                </div>
+            <div class="card-body" style="padding-top: 0;">
+                <a href="{{ url_for('tournament.create_tournament') }}" class="create-btn">+ Turnier erstellen</a>
+            </div>
             {% endif %}
         </div>
 
@@ -142,26 +185,28 @@
                     <a href="{{ url_for('cup.cup_details', cup_id=c.id) }}" style="font-weight: 600; flex: 1;">
                         {{ c.name }}
                     </a>
-                    
+
                     {% if current_user.is_admin %}
                     <div style="display:flex; gap: 5px;">
                         <form action="{{ url_for('cup.archive_cup', cup_id=c.id) }}" method="POST">
                             <button class="btn-icon" title="Archivieren">📦</button>
                         </form>
-                        <form action="{{ url_for('cup.delete_cup', cup_id=c.id) }}" method="POST" onsubmit="return confirm('Cup wirklich löschen?');">
+                        <form action="{{ url_for('cup.delete_cup', cup_id=c.id) }}" method="POST"
+                            onsubmit="return confirm('Cup wirklich löschen?');">
                             <button class="btn-icon" style="color: var(--danger);" title="Löschen">✕</button>
                         </form>
                     </div>
                     {% endif %}
                 </li>
                 {% else %}
-                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">Keine aktiven Cups</li>
+                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">
+                    Keine aktiven Cups</li>
                 {% endfor %}
             </ul>
             {% if current_user.is_admin %}
-                <div class="card-body" style="padding-top: 0;">
-                    <a href="{{ url_for('cup.create_cup') }}" class="create-btn">+ Cup erstellen</a>
-                </div>
+            <div class="card-body" style="padding-top: 0;">
+                <a href="{{ url_for('cup.create_cup') }}" class="create-btn">+ Cup erstellen</a>
+            </div>
             {% endif %}
         </div>
 
@@ -175,56 +220,63 @@
                     <a href="{{ url_for('league.league_details', league_id=l.id) }}" style="font-weight: 600; flex: 1;">
                         {{ l.name }}
                     </a>
-                    
+
                     {% if current_user.is_admin %}
                     <div style="display:flex; gap: 5px;">
                         <form action="{{ url_for('league.archive_league', league_id=l.id) }}" method="POST">
                             <button class="btn-icon" title="Archivieren">📦</button>
                         </form>
-                        <form action="{{ url_for('league.delete_league', league_id=l.id) }}" method="POST" onsubmit="return confirm('Liga wirklich löschen?');">
+                        <form action="{{ url_for('league.delete_league', league_id=l.id) }}" method="POST"
+                            onsubmit="return confirm('Liga wirklich löschen?');">
                             <button class="btn-icon" style="color: var(--danger);" title="Löschen">✕</button>
                         </form>
                     </div>
                     {% endif %}
                 </li>
                 {% else %}
-                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">Keine aktiven Ligen</li>
+                <li class="item-row" style="color: var(--text-muted); justify-content: center; font-style: italic;">
+                    Keine aktiven Ligen</li>
                 {% endfor %}
             </ul>
             {% if current_user.is_admin %}
-                <div class="card-body" style="padding-top: 0;">
-                    <a href="{{ url_for('league.create_league') }}" class="create-btn">+ Liga erstellen</a>
-                </div>
+            <div class="card-body" style="padding-top: 0;">
+                <a href="{{ url_for('league.create_league') }}" class="create-btn">+ Liga erstellen</a>
+            </div>
             {% endif %}
         </div>
 
-    </div> 
-    
+    </div>
+
     {% if not current_user.is_admin and not current_user.is_mod %}
     <div class="card">
         <div class="card-header">
             <h3>👤 Mein Roster</h3>
         </div>
         <div class="card-body">
-            <ul class="item-list" style="margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 4px;">
+            <ul class="item-list"
+                style="margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 4px;">
                 {% for m in current_user.team_members %}
                 <li class="item-row">
                     <span>
-                        <strong style="color: #fff;">{{ m.gamertag }}</strong> 
+                        <strong style="color: #fff;">{{ m.gamertag }}</strong>
                         <span style="color: var(--text-muted); font-size: 0.9em;">({{ m.platform }})</span>
                     </span>
-                    <form action="{{ url_for('main.delete_member', member_id=m.id) }}" method="POST" onsubmit="return confirm('Spieler entfernen?');">
+                    <form action="{{ url_for('main.delete_member', member_id=m.id) }}" method="POST"
+                        onsubmit="return confirm('Spieler entfernen?');">
                         <button class="btn-icon" style="color: var(--danger);">🗑️</button>
                     </form>
                 </li>
                 {% else %}
-                <li style="padding:15px; text-align:center; color: var(--text-muted);">Noch keine Spieler eingetragen.</li>
+                <li style="padding:15px; text-align:center; color: var(--text-muted);">Noch keine Spieler eingetragen.
+                </li>
                 {% endfor %}
             </ul>
-            
-            <form action="{{ url_for('main.add_member') }}" method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
+
+            <form action="{{ url_for('main.add_member') }}" method="POST"
+                style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <input type="text" name="gamertag" placeholder="Gamertag" required style="flex: 1; min-width: 120px;">
-                <input type="text" name="activision_id" placeholder="Activision ID" required style="flex: 1; min-width: 120px;">
+                <input type="text" name="activision_id" placeholder="Activision ID" required
+                    style="flex: 1; min-width: 120px;">
                 <select name="platform" style="flex: 1; min-width: 80px;">
                     <option value="PC">PC</option>
                     <option value="PS5">PS5</option>
@@ -244,36 +296,44 @@
         <div class="card-body" style="padding-top: 0;">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 {% for t in archived_tournaments %}
-                    <div style="background: #111; padding: 6px 12px; border-radius: 4px; border: 1px solid #333; color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
-                        <span>🏆 {{ t.name }}</span>
-                        {% if current_user.is_admin %}
-                        <form action="{{ url_for('tournament.archive_tournament', t_id=t.id) }}" method="POST" style="display:inline;">
-                            <button class="btn-icon" style="padding: 0; font-size: 0.8rem;" title="Wiederherstellen">🔄</button>
-                        </form>
-                        {% endif %}
-                    </div>
+                <div
+                    style="background: #111; padding: 6px 12px; border-radius: 4px; border: 1px solid #333; color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                    <span>🏆 {{ t.name }}</span>
+                    {% if current_user.is_admin %}
+                    <form action="{{ url_for('tournament.archive_tournament', t_id=t.id) }}" method="POST"
+                        style="display:inline;">
+                        <button class="btn-icon" style="padding: 0; font-size: 0.8rem;"
+                            title="Wiederherstellen">🔄</button>
+                    </form>
+                    {% endif %}
+                </div>
                 {% endfor %}
-                
+
                 {% for c in archived_cups %}
-                    <div style="background: #111; padding: 6px 12px; border-radius: 4px; border: 1px solid #333; color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
-                        <span>🎮 {{ c.name }}</span>
-                        {% if current_user.is_admin %}
-                        <form action="{{ url_for('cup.archive_cup', cup_id=c.id) }}" method="POST" style="display:inline;">
-                            <button class="btn-icon" style="padding: 0; font-size: 0.8rem;" title="Wiederherstellen">🔄</button>
-                        </form>
-                        {% endif %}
-                    </div>
+                <div
+                    style="background: #111; padding: 6px 12px; border-radius: 4px; border: 1px solid #333; color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                    <span>🎮 {{ c.name }}</span>
+                    {% if current_user.is_admin %}
+                    <form action="{{ url_for('cup.archive_cup', cup_id=c.id) }}" method="POST" style="display:inline;">
+                        <button class="btn-icon" style="padding: 0; font-size: 0.8rem;"
+                            title="Wiederherstellen">🔄</button>
+                    </form>
+                    {% endif %}
+                </div>
                 {% endfor %}
 
                 {% for l in archived_leagues %}
-                    <div style="background: #111; padding: 6px 12px; border-radius: 4px; border: 1px solid #333; color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
-                        <span>📈 {{ l.name }}</span>
-                        {% if current_user.is_admin %}
-                        <form action="{{ url_for('league.archive_league', league_id=l.id) }}" method="POST" style="display:inline;">
-                            <button class="btn-icon" style="padding: 0; font-size: 0.8rem;" title="Wiederherstellen">🔄</button>
-                        </form>
-                        {% endif %}
-                    </div>
+                <div
+                    style="background: #111; padding: 6px 12px; border-radius: 4px; border: 1px solid #333; color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                    <span>📈 {{ l.name }}</span>
+                    {% if current_user.is_admin %}
+                    <form action="{{ url_for('league.archive_league', league_id=l.id) }}" method="POST"
+                        style="display:inline;">
+                        <button class="btn-icon" style="padding: 0; font-size: 0.8rem;"
+                            title="Wiederherstellen">🔄</button>
+                    </form>
+                    {% endif %}
+                </div>
                 {% endfor %}
             </div>
         </div>

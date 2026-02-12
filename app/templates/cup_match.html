@@ -3,8 +3,11 @@
 {% block content %}
 <style>
     /* --- LAYOUT & STYLES --- */
-    .container { max-width: 1000px; margin: 0 auto; }
-    
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
     /* Header Bereich */
     .match-header {
         background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
@@ -13,108 +16,241 @@
         border-radius: 8px;
         margin-bottom: 25px;
         text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
-    
+
     .team-vs-container {
-        display: flex; justify-content: center; align-items: center; gap: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
         flex-wrap: wrap;
     }
-    .team-name { font-size: 1.8rem; font-weight: 800; letter-spacing: 1px; }
-    .clan-tag { display: block; font-size: 0.9rem; color: #aaa; font-weight: normal; margin-top: 5px; }
-    .vs-badge { 
-        background: #fbc02d; color: #000; font-weight: 900; padding: 5px 10px; 
-        border-radius: 4px; font-size: 1.2rem; transform: skew(-10deg);
+
+    .team-name {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    .clan-tag {
+        display: block;
+        font-size: 0.9rem;
+        color: #aaa;
+        font-weight: normal;
+        margin-top: 5px;
+    }
+
+    .vs-badge {
+        background: #fbc02d;
+        color: #000;
+        font-weight: 900;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 1.2rem;
+        transform: skew(-10deg);
     }
 
     /* Roster Grid */
-    .roster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-    .roster-card { 
-        background: #1e1e1e; border-radius: 8px; overflow: hidden; 
-        border-top: 4px solid #444; transition: transform 0.2s;
+    .roster-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
     }
-    .roster-card h4 { background: #252525; margin: 0; padding: 15px; border-bottom: 1px solid #333; }
-    
-    .roster-list { list-style: none; padding: 15px; margin: 0; }
-    .roster-item { 
-        padding: 8px 0; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; 
-        color: #ddd; font-size: 0.95rem; cursor: help; /* Zeigt Fragezeichen-Cursor für Tooltip */
+
+    .roster-card {
+        background: #1e1e1e;
+        border-radius: 8px;
+        overflow: hidden;
+        border-top: 4px solid #444;
+        transition: transform 0.2s;
     }
-    .roster-item:last-child { border-bottom: none; }
-    
+
+    .roster-card h4 {
+        background: #252525;
+        margin: 0;
+        padding: 15px;
+        border-bottom: 1px solid #333;
+    }
+
+    .roster-list {
+        list-style: none;
+        padding: 15px;
+        margin: 0;
+    }
+
+    .roster-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #ddd;
+        font-size: 0.95rem;
+        cursor: help;
+        /* Zeigt Fragezeichen-Cursor für Tooltip */
+    }
+
+    .roster-item:last-child {
+        border-bottom: none;
+    }
+
     /* Status Badges */
-    .status-box { padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; }
-    .status-confirmed { background: rgba(76, 175, 80, 0.15); color: #4caf50; border-top: 1px solid #4caf50; }
-    .status-pending { background: rgba(244, 67, 54, 0.15); color: #f44336; border-top: 1px solid #f44336; }
-    .border-green { border-top-color: #4caf50 !important; }
-    .border-red { border-top-color: #f44336 !important; }
+    .status-box {
+        padding: 10px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .status-confirmed {
+        background: rgba(76, 175, 80, 0.15);
+        color: #4caf50;
+        border-top: 1px solid #4caf50;
+    }
+
+    .status-pending {
+        background: rgba(244, 67, 54, 0.15);
+        color: #f44336;
+        border-top: 1px solid #f44336;
+    }
+
+    .border-green {
+        border-top-color: #4caf50 !important;
+    }
+
+    .border-red {
+        border-top-color: #f44336 !important;
+    }
 
     /* Map Cards */
-    .map-scroll-container { 
-        display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;
-        scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    .map-scroll-container {
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
     }
-    .map-card { 
-        min-width: 160px; background: #222; border-radius: 8px; overflow: hidden; 
-        border: 1px solid #444; text-align: center; scroll-snap-align: start;
+
+    .map-card {
+        min-width: 160px;
+        background: #222;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #444;
+        text-align: center;
+        scroll-snap-align: start;
     }
-    .map-img { width: 100%; height: 90px; object-fit: cover; }
-    .map-name { padding: 8px; font-weight: bold; font-size: 0.9rem; }
+
+    .map-img {
+        width: 100%;
+        height: 90px;
+        object-fit: cover;
+    }
+
+    .map-name {
+        padding: 8px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
 
     /* Chat */
-    .chat-box { 
-        background: #151515; border: 1px solid #333; border-radius: 8px; 
-        height: 400px; display: flex; flex-direction: column; 
+    .chat-box {
+        background: #151515;
+        border: 1px solid #333;
+        border-radius: 8px;
+        height: 400px;
+        display: flex;
+        flex-direction: column;
     }
-    .chat-history { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-    .chat-input-area { padding: 10px; background: #222; border-top: 1px solid #333; display: flex; gap: 10px; }
+
+    .chat-history {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .chat-input-area {
+        padding: 10px;
+        background: #222;
+        border-top: 1px solid #333;
+        display: flex;
+        gap: 10px;
+    }
 
     /* Mobile */
     @media (max-width: 768px) {
-        .roster-grid { grid-template-columns: 1fr; }
-        .team-name { font-size: 1.4rem; }
+        .roster-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .team-name {
+            font-size: 1.4rem;
+        }
     }
 </style>
 
 <div class="container">
-    
+
     <div class="match-header">
         <div class="team-vs-container">
-            <div>
-                <div class="team-name">{{ match.team_a }}</div>
+            <div style="text-align: center;">
+                {% if match.team_a_logo %}
+                <img src="{{ url_for('static', filename='logos/' + match.team_a_logo) }}"
+                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid #fbc02d; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
+                {% else %}
+                <div
+                    style="width: 80px; height: 80px; background: #333; border-radius: 50%; border: 3px solid #444; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-left: auto; margin-right: auto;">
+                    👤</div>
+                {% endif %}
+                <div class="team-name">{{ match.team_a | strip_clan_tag }}</div>
                 {% if match.team_a_clan %}<span class="clan-tag">{{ match.team_a_clan }}</span>{% endif %}
             </div>
             <div class="vs-badge">VS</div>
-            <div>
-                <div class="team-name">{{ match.team_b }}</div>
+            <div style="text-align: center;">
+                {% if match.team_b_logo %}
+                <img src="{{ url_for('static', filename='logos/' + match.team_b_logo) }}"
+                    style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid #fbc02d; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
+                {% else %}
+                <div
+                    style="width: 80px; height: 80px; background: #333; border-radius: 50%; border: 3px solid #444; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-left: auto; margin-right: auto;">
+                    👤</div>
+                {% endif %}
+                <div class="team-name">{{ match.team_b | strip_clan_tag }}</div>
                 {% if match.team_b_clan %}<span class="clan-tag">{{ match.team_b_clan }}</span>{% endif %}
             </div>
         </div>
-        <div style="margin-top: 15px; color: #fbc02d; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">
+        <div
+            style="margin-top: 15px; color: #fbc02d; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">
             Status: {{ match.state|replace('_', ' ') }}
         </div>
     </div>
 
     <div class="roster-grid">
-        
+
         <div class="roster-card {% if match.confirmed_a %}border-green{% else %}border-red{% endif %}">
-            <h4>👥 {{ match.team_a }} Kader</h4>
+            <h4>👥 {{ match.team_a | strip_clan_tag }} Kader</h4>
             <ul class="roster-list">
                 {% set lineup_a = match.get_lineup_a() %}
                 {% if lineup_a %}
-                    {% for player in lineup_a %}
-                        <li class="roster-item" title="Activision ID: {{ player_ids.get(player, 'Unbekannt') }}">
-                            <span style="color:#aaa;">🎮</span> 
-                            <span>
-                                {{ player }}
-                                <span style="font-size: 0.8rem; color: #666; margin-left: 5px;">
-                                    ({{ player_ids.get(player, '?') }})
-                                </span>
-                            </span>
-                        </li>
-                    {% endfor %}
+                {% for player in lineup_a %}
+                <li class="roster-item" title="Activision ID: {{ player_ids.get(player, 'Unbekannt') }}">
+                    <span style="color:#aaa;">🎮</span>
+                    <span>
+                        {{ player }}
+                        <span style="font-size: 0.8rem; color: #666; margin-left: 5px;">
+                            ({{ player_ids.get(player, '?') }})
+                        </span>
+                    </span>
+                </li>
+                {% endfor %}
                 {% else %}
-                    <li class="roster-item" style="font-style:italic; color:#666;">Kein Kader festgelegt.</li>
+                <li class="roster-item" style="font-style:italic; color:#666;">Kein Kader festgelegt.</li>
                 {% endif %}
             </ul>
             <div class="status-box {% if match.confirmed_a %}status-confirmed{% else %}status-pending{% endif %}">
@@ -123,23 +259,23 @@
         </div>
 
         <div class="roster-card {% if match.confirmed_b %}border-green{% else %}border-red{% endif %}">
-            <h4>👥 {{ match.team_b }} Kader</h4>
+            <h4>👥 {{ match.team_b | strip_clan_tag }} Kader</h4>
             <ul class="roster-list">
                 {% set lineup_b = match.get_lineup_b() %}
                 {% if lineup_b %}
-                    {% for player in lineup_b %}
-                        <li class="roster-item" title="Activision ID: {{ player_ids.get(player, 'Unbekannt') }}">
-                            <span style="color:#aaa;">🎮</span> 
-                            <span>
-                                {{ player }}
-                                <span style="font-size: 0.8rem; color: #666; margin-left: 5px;">
-                                    ({{ player_ids.get(player, '?') }})
-                                </span>
-                            </span>
-                        </li>
-                    {% endfor %}
+                {% for player in lineup_b %}
+                <li class="roster-item" title="Activision ID: {{ player_ids.get(player, 'Unbekannt') }}">
+                    <span style="color:#aaa;">🎮</span>
+                    <span>
+                        {{ player }}
+                        <span style="font-size: 0.8rem; color: #666; margin-left: 5px;">
+                            ({{ player_ids.get(player, '?') }})
+                        </span>
+                    </span>
+                </li>
+                {% endfor %}
                 {% else %}
-                    <li class="roster-item" style="font-style:italic; color:#666;">Kein Kader festgelegt.</li>
+                <li class="roster-item" style="font-style:italic; color:#666;">Kein Kader festgelegt.</li>
                 {% endif %}
             </ul>
             <div class="status-box {% if match.confirmed_b %}status-confirmed{% else %}status-pending{% endif %}">
@@ -154,19 +290,24 @@
             <h3 style="color: #2196f3; margin:0;">👮 Admin Control Center</h3>
         </div>
         <div class="card-body">
-            
-            <form method="POST" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between;">
+
+            <form method="POST"
+                style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between;">
                 <input type="hidden" name="confirm_lineups" value="true">
-                
+
                 <div style="display: flex; gap: 20px;">
-                    <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; background: #222; padding: 10px 15px; border-radius: 4px;">
-                        <input type="checkbox" name="confirm_a" {% if match.confirmed_a %}checked{% endif %} style="transform: scale(1.3);">
-                        <span>{{ match.team_a }} anwesend</span>
+                    <label
+                        style="cursor: pointer; display: flex; align-items: center; gap: 10px; background: #222; padding: 10px 15px; border-radius: 4px;">
+                        <input type="checkbox" name="confirm_a" {% if match.confirmed_a %}checked{% endif %}
+                            style="transform: scale(1.3);">
+                        <span>{{ match.team_a | strip_clan_tag }} anwesend</span>
                     </label>
-                    
-                    <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; background: #222; padding: 10px 15px; border-radius: 4px;">
-                        <input type="checkbox" name="confirm_b" {% if match.confirmed_b %}checked{% endif %} style="transform: scale(1.3);">
-                        <span>{{ match.team_b }} anwesend</span>
+
+                    <label
+                        style="cursor: pointer; display: flex; align-items: center; gap: 10px; background: #222; padding: 10px 15px; border-radius: 4px;">
+                        <input type="checkbox" name="confirm_b" {% if match.confirmed_b %}checked{% endif %}
+                            style="transform: scale(1.3);">
+                        <span>{{ match.team_b | strip_clan_tag }} anwesend</span>
                     </label>
                 </div>
 
@@ -181,9 +322,10 @@
                 <h4 style="color: #aaa; margin-top: 0;">Maps wählen</h4>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px;">
                     {% for i in range(1, 4) %}
-                    <select name="map_{{ i }}" style="background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px;">
+                    <select name="map_{{ i }}"
+                        style="background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px;">
                         {% for map in all_maps %}
-                            <option value="{{ map.name }}">{{ map.name }}</option>
+                        <option value="{{ map.name }}">{{ map.name }}</option>
                         {% endfor %}
                     </select>
                     {% endfor %}
@@ -201,15 +343,15 @@
         <h3 style="margin-top: 0;">🏟️ Map Pool</h3>
         <div class="map-scroll-container">
             {% for m_name in picked %}
-                {% set map_obj = all_maps | selectattr('name', 'equalto', m_name) | first %}
-                <div class="map-card">
-                    {% if map_obj %}
-                        <img src="{{ url_for('static', filename='map_images/' + map_obj.image_file) }}" class="map-img">
-                    {% else %}
-                        <div style="height: 90px; background: #333;"></div>
-                    {% endif %}
-                    <div class="map-name">{{ loop.index }}. {{ m_name }}</div>
-                </div>
+            {% set map_obj = all_maps | selectattr('name', 'equalto', m_name) | first %}
+            <div class="map-card">
+                {% if map_obj %}
+                <img src="{{ url_for('static', filename='map_images/' + map_obj.image_file) }}" class="map-img">
+                {% else %}
+                <div style="height: 90px; background: #333;"></div>
+                {% endif %}
+                <div class="map-name">{{ loop.index }}. {{ m_name }}</div>
+            </div>
             {% endfor %}
         </div>
     </div>
@@ -218,15 +360,16 @@
     {% if match.state in ['waiting_for_code', 'in_progress', 'finished'] %}
     <div class="card" style="text-align: center; border: 2px solid #ff9800; margin-bottom: 25px; background: #221a0f;">
         <h3 style="color: #ff9800; margin-bottom: 5px;">🔑 Lobby Code</h3>
-        
-        <div id="lobbyCodeDisplay" style="font-family: monospace; font-size: 2rem; letter-spacing: 2px; color: #fff; margin: 15px 0;">
+
+        <div id="lobbyCodeDisplay"
+            style="font-family: monospace; font-size: 2rem; letter-spacing: 2px; color: #fff; margin: 15px 0;">
             {% if match.lobby_code %}{{ match.lobby_code }}{% else %}...{% endif %}
         </div>
 
         {% if current_user.is_admin or current_user.is_mod %}
         <form method="POST" style="display: flex; justify-content: center; gap: 10px;">
-            <input type="text" name="lobby_code" value="{{ match.lobby_code or '' }}" placeholder="Code eingeben..." 
-                   style="padding: 10px; background: #111; border: 1px solid #ff9800; color: white; width: 200px;">
+            <input type="text" name="lobby_code" value="{{ match.lobby_code or '' }}" placeholder="Code eingeben..."
+                style="padding: 10px; background: #111; border: 1px solid #ff9800; color: white; width: 200px;">
             <button name="set_lobby_code" class="btn" style="background: #ff9800; color: black;">Setzen</button>
         </form>
         {% endif %}
@@ -242,8 +385,8 @@
                 <thead>
                     <tr style="border-bottom: 1px solid #444;">
                         <th style="text-align: left; padding: 10px;">Map</th>
-                        <th style="text-align: center;">{{ match.team_a }}</th>
-                        <th style="text-align: center;">{{ match.team_b }}</th>
+                        <th style="text-align: center;">{{ match.team_a | strip_clan_tag }}</th>
+                        <th style="text-align: center;">{{ match.team_b | strip_clan_tag }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -256,12 +399,14 @@
                             {% if picked and picked|length >= i %}<strong>{{ picked[i-1] }}</strong>{% endif %}
                         </td>
                         <td style="text-align: center;">
-                            <input type="number" name="score_a_{{i}}" value="{{ saved_a[i-1] if saved_a|length >= i else 0 }}"
-                                   style="width: 60px; text-align: center; padding: 8px; background: #222; border: 1px solid #444; color: white;">
+                            <input type="number" name="score_a_{{i}}"
+                                value="{{ saved_a[i-1] if saved_a|length >= i else 0 }}"
+                                style="width: 60px; text-align: center; padding: 8px; background: #222; border: 1px solid #444; color: white;">
                         </td>
                         <td style="text-align: center;">
-                            <input type="number" name="score_b_{{i}}" value="{{ saved_b[i-1] if saved_b|length >= i else 0 }}"
-                                   style="width: 60px; text-align: center; padding: 8px; background: #222; border: 1px solid #444; color: white;">
+                            <input type="number" name="score_b_{{i}}"
+                                value="{{ saved_b[i-1] if saved_b|length >= i else 0 }}"
+                                style="width: 60px; text-align: center; padding: 8px; background: #222; border: 1px solid #444; color: white;">
                         </td>
                     </tr>
                     {% endfor %}
@@ -280,9 +425,9 @@
             <div style="text-align: center; color: #555; margin-top: 20px;">Lade Nachrichten...</div>
         </div>
         <div class="chat-input-area">
-            <input type="text" id="msgInput" placeholder="Nachricht schreiben..." 
-                   style="flex: 1; padding: 10px; background: #111; border: 1px solid #444; color: white; border-radius: 4px;"
-                   onkeypress="handleEnter(event)">
+            <input type="text" id="msgInput" placeholder="Nachricht schreiben..."
+                style="flex: 1; padding: 10px; background: #111; border: 1px solid #444; color: white; border-radius: 4px;"
+                onkeypress="handleEnter(event)">
             <button onclick="sendMsg()" class="btn-small" style="background: #4caf50;">➤</button>
         </div>
     </div>
@@ -300,7 +445,7 @@
         try {
             const res = await fetch(`/api/cup_match/${matchId}/state`);
             const data = await res.json();
-            
+
             // Auto-Reload bei Statusänderung (z.B. wenn Admin Maps setzt)
             const currentState = "{{ match.state }}";
             if (!window.lastKnownState) window.lastKnownState = currentState;
@@ -311,18 +456,18 @@
             if (lobbyDisplay && data.lobby_code) {
                 lobbyDisplay.innerText = data.lobby_code;
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     async function sendMsg() {
         const txt = document.getElementById('msgInput').value;
-        if(!txt) return;
-        await fetch(`/api/cup_match/${matchId}/chat`, { 
-            method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: txt}) 
+        if (!txt) return;
+        await fetch(`/api/cup_match/${matchId}/chat`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt })
         });
         document.getElementById('msgInput').value = ''; loadChat();
     }
-    function handleEnter(e) { if(e.key === 'Enter') sendMsg(); }
+    function handleEnter(e) { if (e.key === 'Enter') sendMsg(); }
 
     async function loadChat() {
         try {
@@ -340,7 +485,7 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
                 lastMsgCount = data.length;
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     setInterval(() => { updateState(); loadChat(); }, 3000);

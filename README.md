@@ -38,6 +38,11 @@ Clan-Admins haben einen eigenen Bereich, um ihr Team zu organisieren.
 Pflegen Sie Ihr Lineup mit detaillierten Spieler-Infos (Gamertag, Activision-ID, Plattform).
 ![Roster](docs/screenshots/clan_roster.png)
 
+### 3. Clean Team Names
+Das System erkennt automatisch Clan-Tags in Benutzernamen (z.B. `FaZe.Simp`) und entfernt diese für eine saubere Darstellung in Match-Tabellen und Brackets (Anzeige: `Simp`). Der volle Name bleibt im Hintergrund erhalten.
+
+![Clean Team Names](docs/screenshots/clean_team_names.png)
+
 ---
 
 ## ⚔️ Match System & Pick/Ban
@@ -61,6 +66,7 @@ Vor dem Spiel führen die Teams eine geführte Map-Veto-Phase durch. Das System 
 ### Voraussetzungen
 *   Python 3.8 oder höher
 *   Pip
+*   Zeitzone: Europe/Berlin (konfigurierbar)
 
 ### Setup
 

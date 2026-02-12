@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from .extensions import db, login_manager
 from .models import User
+from .firebase_utils import init_firebase
 
 def create_app():
     app = Flask(__name__)
@@ -13,6 +14,10 @@ def create_app():
     # Init Extensions
     db.init_app(app)
     login_manager.init_app(app)
+    init_firebase(app)
+    
+    from .utils import strip_clan_tag
+    app.jinja_env.filters['strip_clan_tag'] = strip_clan_tag
 
     @login_manager.user_loader
     def load_user(user_id):

@@ -1,5 +1,7 @@
 /__pycache__
 /instance
+instance/serviceAccountKey.json
+.env
 app/__pycache__/__init__.cpython-313.pyc
 app/__pycache__/extensions.cpython-313.pyc
 app/__pycache__/models.cpython-313.pyc
@@ -69,3 +71,11 @@ app/static/map_images/Nexus.webp
 app/static/map_images/Sake.webp
 app/static/map_images/Torment.webp
 app/static/map_images/Slums.webp
+seed_data.py
+migrate_schedule.py
+app/__pycache__/firebase_utils.cpython-314.pyc
+add_logo_columns.py
+add_fcm_column.py
+app/static/logos/clan_1_0b199f13.png
+verify_logic_standalone.py
+verify_strip_tag.py

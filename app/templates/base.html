@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Infernus eSports</title>
-    
+
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#121212"> 
+    <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
@@ -17,7 +18,7 @@
         body::before {
             content: "";
             position: fixed;
-            top: 0; 
+            top: 0;
             left: 0;
             width: 100%;
             height: 100%;
@@ -26,50 +27,81 @@
             background-position: center center;
             background-repeat: no-repeat;
             background-size: cover;
-            opacity: 0.05; 
+            opacity: 0.05;
             pointer-events: none;
         }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar">
         <a href="{{ url_for('main.dashboard') }}" class="nav-brand">🔥 Infernus eSports League</a>
         <div class="nav-links">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-                <a href="{{ url_for('main.rules') }}">Regelwerk</a>
-                <a href="{{ url_for('auth.logout') }}">Logout</a>
+            <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.rules') }}">Regelwerk</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('auth.login') }}">Login</a>
+            <a href="{{ url_for('auth.login') }}">Login</a>
             {% endif %}
         </div>
     </nav>
 
     {% block content %}{% endblock %}
 
-    <script>
-        // --- ÄNDERUNG: SERVICE WORKER DEAKTIVIERT & ENTFERNT ---
-        
-        // 1. Alten Worker entfernen (Self-Destruct für den Cache)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister()
-                    .then(function() {
-                        console.log("Service Worker erfolgreich entfernt! Cache ist frei.");
-                    });
-                } 
-            });
-        }
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 
-        /* // VORHERIGER CODE (Auskommentiert)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register("/sw.js")
-                .then(() => console.log("Service Worker Registered"))
-                .catch(e => console.log("SW Fail:", e));
+    <script>
+        const firebaseConfig = {
+            apiKey: "{{ config.FIREBASE_API_KEY }}",
+            authDomain: "{{ config.FIREBASE_PROJECT_ID }}.firebaseapp.com",
+            projectId: "{{ config.FIREBASE_PROJECT_ID }}",
+            storageBucket: "{{ config.FIREBASE_PROJECT_ID }}.appspot.com",
+            messagingSenderId: "{{ config.FIREBASE_MESSAGING_SENDER_ID }}",
+            appId: "{{ config.FIREBASE_APP_ID }}"
+        };
+
+        // Initialize Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const messaging = firebase.messaging();
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register("/sw.js")
+                    .then(function (registration) {
+                        console.log('Registration successful, scope is:', registration.scope);
+                        // Request permission
+                        Notification.requestPermission().then((permission) => {
+                            if (permission === 'granted') {
+                                console.log('Notification permission granted.');
+                                // Get Token
+                                messaging.getToken({ vapidKey: '{{ config.FIREBASE_VAPID_KEY }}' }).then((currentToken) => {
+                                    if (currentToken) {
+                                        // Send token to server
+                                        fetch('/api/save_fcm_token', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ token: currentToken })
+                                        }).then(res => console.log("Token sent to server"));
+                                    } else {
+                                        console.log('No registration token available. Request permission to generate one.');
+                                    }
+                                }).catch((err) => {
+                                    console.log('An error occurred while retrieving token. ', err);
+                                });
+                            }
+                        });
+                    }).catch(function (err) {
+                        console.log('Service worker registration failed, error:', err);
+                    });
+            }
+        } catch (e) {
+            console.log("Firebase Init Error (Update config in base.html):", e);
         }
-        */
     </script>
 </body>
+
 </html>

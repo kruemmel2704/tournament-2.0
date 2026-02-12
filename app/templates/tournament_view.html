@@ -3,50 +3,244 @@
 {% block content %}
 <style>
     /* --- Styles wie zuvor --- */
-    .hero-card { background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%); border-left: 6px solid var(--primary); border-radius: 8px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; position: relative; overflow: hidden; }
-    .hero-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100%; background: linear-gradient(to left, rgba(183, 28, 28, 0.1), transparent); pointer-events: none; }
-    .hero-content { flex: 1; min-width: 200px; }
-    .hero-label { color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; margin-bottom: 5px; display: block; }
-    
-    .hero-matchup { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1.2; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .hero-vs { color: var(--text-muted); font-size: 1rem; font-weight: 400; margin: 0 5px; }
+    .hero-card {
+        background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+        border-left: 6px solid var(--primary);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
 
-    .hero-team-box { display: flex; flex-direction: column; }
-    .hero-clan-tag { font-size: 0.9rem; color: #aaa; font-weight: normal; }
+    .hero-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100%;
+        background: linear-gradient(to left, rgba(183, 28, 28, 0.1), transparent);
+        pointer-events: none;
+    }
 
-    .hero-meta { margin-top: 8px; color: var(--text-muted); font-size: 0.9rem; display: flex; gap: 15px; align-items: center; }
-    .status-badge { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #444; }
-    .hero-action .btn { padding: 12px 25px; font-size: 1rem; box-shadow: 0 4px 10px rgba(183, 28, 28, 0.4); }
+    .hero-content {
+        flex: 1;
+        min-width: 200px;
+    }
 
-    .bracket-container { display: flex; overflow-x: auto; padding: 20px 10px; gap: 40px; min-height: 60vh; align-items: center; scrollbar-width: thin; scrollbar-color: var(--primary) #111; }
-    .round-column { display: flex; flex-direction: column; justify-content: space-around; min-width: 280px; gap: 20px; flex-shrink: 0; }
-    .round-title { text-align: center; color: var(--text-muted); margin-bottom: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; }
-    
-    .match-node { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 0; position: relative; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); display: flex; flex-direction: column; text-decoration: none; color: inherit; }
-    .match-node:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.3); z-index: 10; }
-    .match-node::after { content: ''; position: absolute; right: -20px; top: 50%; width: 20px; height: 2px; background: var(--border-color); }
-    .round-column:last-child .match-node::after { display: none; }
+    .hero-label {
+        color: var(--primary);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+        margin-bottom: 5px;
+        display: block;
+    }
 
-    .team-row { padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-    .team-row:last-child { border-bottom: none; }
-    
-    .team-info { display: flex; flex-direction: column; }
-    .team-name { font-weight: 600; font-size: 0.95rem; }
-    .team-clan { font-size: 0.75rem; color: #888; } /* Clan Style im Bracket */
-    
-    .team-score { background: #111; padding: 2px 7px; border-radius: 3px; font-family: monospace; color: var(--text-muted); }
-    .winner { color: var(--success); }
-    .winner .team-score { color: var(--success); font-weight: bold; }
-    .loser { color: var(--text-muted); opacity: 0.5; }
-    .status-bar { height: 3px; width: 100%; background: #333; }
-    .status-active { background: var(--primary); }
-    .status-finished { background: var(--success); }
+    .hero-matchup {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
 
-    @media (max-width: 768px) { .hero-card { text-align: center; justify-content: center; } .hero-meta { justify-content: center; } }
+    .hero-vs {
+        color: var(--text-muted);
+        font-size: 1rem;
+        font-weight: 400;
+        margin: 0 5px;
+    }
+
+    .hero-team-box {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-clan-tag {
+        font-size: 0.9rem;
+        color: #aaa;
+        font-weight: normal;
+    }
+
+    .hero-meta {
+        margin-top: 8px;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .status-badge {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        border: 1px solid #444;
+    }
+
+    .hero-action .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        box-shadow: 0 4px 10px rgba(183, 28, 28, 0.4);
+    }
+
+    .bracket-container {
+        display: flex;
+        overflow-x: auto;
+        padding: 20px 10px;
+        gap: 40px;
+        min-height: 60vh;
+        align-items: center;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary) #111;
+    }
+
+    .round-column {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        min-width: 280px;
+        gap: 20px;
+        flex-shrink: 0;
+    }
+
+    .round-title {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+    }
+
+    .match-node {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 0;
+        position: relative;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .match-node:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+    }
+
+    .match-node::after {
+        content: '';
+        position: absolute;
+        right: -20px;
+        top: 50%;
+        width: 20px;
+        height: 2px;
+        background: var(--border-color);
+    }
+
+    .round-column:last-child .match-node::after {
+        display: none;
+    }
+
+    .team-row {
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #333;
+    }
+
+    .team-row:last-child {
+        border-bottom: none;
+    }
+
+    .team-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .team-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .team-clan {
+        font-size: 0.75rem;
+        color: #888;
+    }
+
+    /* Clan Style im Bracket */
+
+    .team-score {
+        background: #111;
+        padding: 2px 7px;
+        border-radius: 3px;
+        font-family: monospace;
+        color: var(--text-muted);
+    }
+
+    .winner {
+        color: var(--success);
+    }
+
+    .winner .team-score {
+        color: var(--success);
+        font-weight: bold;
+    }
+
+    .loser {
+        color: var(--text-muted);
+        opacity: 0.5;
+    }
+
+    .status-bar {
+        height: 3px;
+        width: 100%;
+        background: #333;
+    }
+
+    .status-active {
+        background: var(--primary);
+    }
+
+    .status-finished {
+        background: var(--success);
+    }
+
+    @media (max-width: 768px) {
+        .hero-card {
+            text-align: center;
+            justify-content: center;
+        }
+
+        .hero-meta {
+            justify-content: center;
+        }
+    }
 </style>
 
 <div class="container" style="max-width: 100%;">
-    
+
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="margin: 0; font-size: 1.5rem;">🏆 {{ tournament.name }}</h2>
         <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-small">&larr; Dashboard</a>
@@ -58,15 +252,17 @@
             <span class="hero-label">🔥 Dein nächstes Match</span>
             <div class="hero-matchup">
                 <div class="hero-team-box">
-                    <span>{{ next_match.team_a }}</span>
-                    {% if next_match.team_a_clan %}<small class="hero-clan-tag">({{ next_match.team_a_clan }})</small>{% endif %}
+                    <span>{{ next_match.team_a | strip_clan_tag }}</span>
+                    {% if next_match.team_a_clan %}<small class="hero-clan-tag">({{ next_match.team_a_clan }})</small>{%
+                    endif %}
                 </div>
-                
+
                 <span class="hero-vs">VS</span>
-                
+
                 <div class="hero-team-box">
-                    <span>{{ next_match.team_b }}</span>
-                    {% if next_match.team_b_clan %}<small class="hero-clan-tag">({{ next_match.team_b_clan }})</small>{% endif %}
+                    <span>{{ next_match.team_b | strip_clan_tag }}</span>
+                    {% if next_match.team_b_clan %}<small class="hero-clan-tag">({{ next_match.team_b_clan }})</small>{%
+                    endif %}
                 </div>
             </div>
             <div class="hero-meta">
@@ -84,30 +280,36 @@
 
     <div class="card" style="background: #151515; border: 1px solid var(--border-color);">
         <div class="bracket-container">
-            
+
             {% for round_matches in rounds %}
             <div class="round-column">
                 <div class="round-title">
                     {% if loop.last %} 👑 Finale {% else %} Runde {{ loop.index }} {% endif %}
                 </div>
-                
+
                 {% for match in round_matches %}
                 <a href="{{ url_for('tournament.match_view', match_id=match.id) }}" class="match-node">
-                    <div class="status-bar {% if match.state == 'finished' %}status-finished{% elif match.state != 'waiting' and match.team_a != 'TBD' %}status-active{% endif %}"></div>
-                    
+                    <div
+                        class="status-bar {% if match.state == 'finished' %}status-finished{% elif match.state != 'waiting' and match.team_a != 'TBD' %}status-active{% endif %}">
+                    </div>
+
                     {% set wa, wb = match.get_map_wins() %}
-                    <div class="team-row {% if match.state == 'finished' and wa > wb %}winner{% elif match.state == 'finished' and wa < wb %}loser{% endif %}">
+                    <div
+                        class="team-row {% if match.state == 'finished' and wa > wb %}winner{% elif match.state == 'finished' and wa < wb %}loser{% endif %}">
                         <div class="team-info">
-                            <span class="team-name">{{ match.team_a }}</span>
-                            {% if match.team_a_clan %}<span class="team-clan">({{ match.team_a_clan }})</span>{% endif %}
+                            <span class="team-name">{{ match.team_a | strip_clan_tag }}</span>
+                            {% if match.team_a_clan %}<span class="team-clan">({{ match.team_a_clan }})</span>{% endif
+                            %}
                         </div>
                         <span class="team-score">{{ wa }}</span>
                     </div>
-                    
-                    <div class="team-row {% if match.state == 'finished' and wb > wa %}winner{% elif match.state == 'finished' and wb < wa %}loser{% endif %}">
+
+                    <div
+                        class="team-row {% if match.state == 'finished' and wb > wa %}winner{% elif match.state == 'finished' and wb < wa %}loser{% endif %}">
                         <div class="team-info">
-                            <span class="team-name">{{ match.team_b }}</span>
-                            {% if match.team_b_clan %}<span class="team-clan">({{ match.team_b_clan }})</span>{% endif %}
+                            <span class="team-name">{{ match.team_b | strip_clan_tag }}</span>
+                            {% if match.team_b_clan %}<span class="team-clan">({{ match.team_b_clan }})</span>{% endif
+                            %}
                         </div>
                         <span class="team-score">{{ wb }}</span>
                     </div>
@@ -118,7 +320,7 @@
 
         </div>
     </div>
-    
+
     <div style="text-align: center; margin-top: 15px; color: var(--text-muted); font-size: 0.8rem; font-style: italic;">
         Zum Ansehen des Baums wischen ↔️
     </div>

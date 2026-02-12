@@ -2,8 +2,33 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from app.models import Match, CupMatch, LeagueMatch, ChatMessage, CupChatMessage, LeagueChatMessage
 from app.extensions import db
+from app.firebase_utils import send_push_notification
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
+
+@api_bp.route('/save_fcm_token', methods=['POST'])
+@login_required
+def save_fcm_token():
+    token = request.json.get('token')
+    if token:
+        current_user.fcm_token = token
+        db.session.commit()
+        return jsonify({'status': 'ok', 'msg': 'Token saved'})
+    return jsonify({'status': 'error', 'msg': 'No token provided'}), 400
+
+@api_bp.route('/test_push', methods=['POST'])
+@login_required
+def test_push():
+    if not current_user.is_admin:
+        return jsonify({'status': 'error', 'msg': 'Admin only'}), 403
+    
+    target_username = request.json.get('username')
+    user = User.query.filter_by(username=target_username).first() if target_username else current_user
+    
+    if user and user.fcm_token:
+        success = send_push_notification(user.fcm_token, "Test Notification", "This is a test from Tournament 2.0")
+        return jsonify({'status': 'ok', 'sent': success})
+    return jsonify({'status': 'error', 'msg': 'User has no token'}), 404
 
 def handle_chat(model, match_id, id_field):
     if request.method == 'POST' and request.json.get('message'):

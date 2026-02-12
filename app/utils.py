@@ -1,8 +1,26 @@
 import json
 from functools import wraps
 from flask import redirect, url_for, session, flash
+from datetime import datetime
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
+from config import Config
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+
+def strip_clan_tag(username):
+    """Entfernt den Clan-Tag (alles vor dem ersten Punkt) aus dem Namen."""
+    if not username: return ""
+    if '.' in username:
+        return username.split('.', 1)[1]
+    return username
+
+def get_current_time():
+    """Returns the current time in the configured timezone."""
+    tz = zoneinfo.ZoneInfo(Config.TIMEZONE)
+    return datetime.now(tz)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

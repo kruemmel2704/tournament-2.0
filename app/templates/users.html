@@ -3,75 +3,114 @@
 {% block content %}
 <style>
     /* Spezifische Styles für den Manager */
-    .manage-grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-        gap: 20px; 
+    .manage-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
         margin-bottom: 30px;
     }
 
-    .section-card { 
-        background: var(--card-bg); 
-        border: 1px solid var(--border-color); 
-        border-radius: 8px; 
-        padding: 20px; 
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    .section-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         display: flex;
         flex-direction: column;
         gap: 15px;
         transition: transform 0.2s;
     }
-    .section-card:hover { transform: translateY(-2px); }
 
-    .section-title { margin: 0; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .section-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .section-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
     /* Farb-Akzente für die verschiedenen Boxen */
-    .border-admin { border-top: 4px solid var(--warning); }
-    .text-admin { color: var(--warning); }
-    
-    .border-mod { border-top: 4px solid #00bcd4; }
-    .text-mod { color: #00bcd4; }
-    
-    .border-pw { border-top: 4px solid var(--text-muted); }
-    .text-pw { color: var(--text-muted); }
-    
-    .border-clan { border-top: 4px solid #e91e63; }
-    .text-clan { color: #e91e63; }
-    
-    .border-team { border-top: 4px solid #2196f3; }
-    .text-team { color: #2196f3; }
+    .border-admin {
+        border-top: 4px solid var(--warning);
+    }
+
+    .text-admin {
+        color: var(--warning);
+    }
+
+    .border-mod {
+        border-top: 4px solid #00bcd4;
+    }
+
+    .text-mod {
+        color: #00bcd4;
+    }
+
+    .border-pw {
+        border-top: 4px solid var(--text-muted);
+    }
+
+    .text-pw {
+        color: var(--text-muted);
+    }
+
+    .border-clan {
+        border-top: 4px solid #e91e63;
+    }
+
+    .text-clan {
+        color: #e91e63;
+    }
+
+    .border-team {
+        border-top: 4px solid #2196f3;
+    }
+
+    .text-team {
+        color: #2196f3;
+    }
 
     /* Listen Styles (Admins, Clans, Mods) */
-    .clan-card { 
-        background: #1a1a1a; 
-        border-left: 4px solid #e91e63; 
-        border-radius: 4px; 
-        margin-bottom: 15px; 
-        overflow: hidden; 
+    .clan-card {
+        background: #1a1a1a;
+        border-left: 4px solid #e91e63;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        overflow: hidden;
         border: 1px solid var(--border-color);
         border-left-width: 4px;
     }
-    
-    .clan-header { 
-        padding: 12px 15px; 
-        background: #252525; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        font-weight: bold; 
-        flex-wrap: wrap; /* Wichtig für Handy */
+
+    .clan-header {
+        padding: 12px 15px;
+        background: #252525;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        flex-wrap: wrap;
+        /* Wichtig für Handy */
         gap: 10px;
     }
 
-    .team-item { 
-        padding: 12px 15px; 
-        border-top: 1px solid var(--border-color); 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        font-size: 0.95rem; 
+    .team-item {
+        padding: 12px 15px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
     }
-    .team-item:hover { background: #222; }
+
+    .team-item:hover {
+        background: #222;
+    }
 
     .token-badge {
         color: var(--text-muted);
@@ -84,29 +123,57 @@
     }
 
     /* Passwort Reset Feld */
-    .pw-reset-box { 
-        background: #151515; 
-        padding: 15px; 
-        border-top: 1px dashed #444; 
-        display: flex; 
-        gap: 10px; 
-        align-items: center; 
+    .pw-reset-box {
+        background: #151515;
+        padding: 15px;
+        border-top: 1px dashed #444;
+        display: flex;
+        gap: 10px;
+        align-items: center;
         flex-wrap: wrap;
     }
 
     /* Mobile Anpassungen */
     @media (max-width: 768px) {
-        .manage-grid { grid-template-columns: 1fr; } /* Alles untereinander */
-        .clan-header { flex-direction: column; align-items: flex-start; }
-        .clan-header div { width: 100%; display: flex; justify-content: space-between; margin-top: 5px; }
-        .pw-reset-box { flex-direction: column; align-items: stretch; }
-        .team-item { flex-direction: column; align-items: flex-start; gap: 8px; }
-        .team-item div { width: 100%; display: flex; justify-content: space-between; margin-top: 5px; }
+        .manage-grid {
+            grid-template-columns: 1fr;
+        }
+
+        /* Alles untereinander */
+        .clan-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .clan-header div {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .pw-reset-box {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .team-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .team-item div {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
     }
 </style>
 
 <div class="container">
-    
+
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <div>
             <h2 style="margin: 0;">🛡️ Clan Manager</h2>
@@ -116,10 +183,11 @@
     </div>
 
     <div class="manage-grid">
-        
+
         <div class="section-card border-admin">
             <h3 class="section-title text-admin">👮 Neuer Admin</h3>
-            <form action="{{ url_for('admin.create_admin') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+            <form action="{{ url_for('admin.create_admin') }}" method="POST"
+                style="display: flex; flex-direction: column; gap: 10px;">
                 <input type="text" name="username" placeholder="Admin Name" required>
                 <input type="password" name="password" placeholder="Passwort" required>
                 <button type="submit" class="btn" style="background: var(--warning); color: #000;">Hinzufügen</button>
@@ -128,7 +196,8 @@
 
         <div class="section-card border-mod">
             <h3 class="section-title text-mod">🛡️ Neuer Moderator</h3>
-            <form action="{{ url_for('admin.create_mod') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+            <form action="{{ url_for('admin.create_mod') }}" method="POST"
+                style="display: flex; flex-direction: column; gap: 10px;">
                 <input type="text" name="username" placeholder="Mod Name" required>
                 <input type="password" name="password" placeholder="Passwort" required>
                 <button type="submit" class="btn" style="background: #00bcd4; color: #000;">Hinzufügen</button>
@@ -137,7 +206,8 @@
 
         <div class="section-card border-pw">
             <h3 class="section-title text-pw">🔑 Mein Passwort</h3>
-            <form action="{{ url_for('admin.admin_change_password') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+            <form action="{{ url_for('admin.admin_change_password') }}" method="POST"
+                style="display: flex; flex-direction: column; gap: 10px;">
                 <input type="password" name="new_password" placeholder="Neues Passwort" required>
                 <input type="password" name="confirm_password" placeholder="Bestätigen" required>
                 <button type="submit" class="btn btn-secondary">Ändern</button>
@@ -148,7 +218,8 @@
     <div class="manage-grid">
         <div class="section-card border-clan">
             <h3 class="section-title text-clan">🚩 Neuer Clan</h3>
-            <form action="{{ url_for('main.create_clan') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+            <form action="{{ url_for('main.create_clan') }}" method="POST"
+                style="display: flex; flex-direction: column; gap: 10px;">
                 <input type="text" name="clan_name" placeholder="Clan Name" required>
                 <input type="password" name="password" placeholder="Admin Passwort" required>
                 <button type="submit" class="btn" style="background: #e91e63;">Clan erstellen</button>
@@ -157,7 +228,8 @@
 
         <div class="section-card border-team">
             <h3 class="section-title text-team">👤 Neues Team</h3>
-            <form action="{{ url_for('admin.create_user') }}" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
+            <form action="{{ url_for('admin.create_user') }}" method="POST"
+                style="display: flex; flex-direction: column; gap: 10px;">
                 <input type="text" name="username" placeholder="Team Name" required>
                 <select name="clan_id">
                     <option value="">-- Kein Clan (Frei) --</option>
@@ -170,7 +242,8 @@
         </div>
     </div>
 
-    <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 40px; color: var(--text-muted);">
+    <h3
+        style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 40px; color: var(--text-muted);">
         Aktuelle Struktur
     </h3>
 
@@ -182,11 +255,12 @@
         {% for admin in admins %}
         <div class="team-item">
             <span>
-                👑 {{ admin.username }} 
+                👑 {{ admin.username }}
                 {% if admin.id == current_user.id %} <small style="color:var(--text-muted)">(Du)</small> {% endif %}
             </span>
             {% if admin.id != current_user.id %}
-            <form action="{{ url_for('admin.delete_user', user_id=admin.id) }}" method="POST" onsubmit="return confirm('Admin {{ admin.username }} wirklich löschen? Er verliert alle Rechte!');">
+            <form action="{{ url_for('admin.delete_user', user_id=admin.id) }}" method="POST"
+                onsubmit="return confirm('Admin {{ admin.username }} wirklich löschen? Er verliert alle Rechte!');">
                 <button type="submit" class="btn-icon" style="color: var(--danger);">✕</button>
             </form>
             {% endif %}
@@ -194,7 +268,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    
+
     {% if moderators %}
     <div class="clan-card" style="border-left-color: #00bcd4;">
         <div class="clan-header" style="color: #00bcd4;">
@@ -203,7 +277,8 @@
         {% for mod in moderators %}
         <div class="team-item">
             <span>👮 {{ mod.username }}</span>
-            <form action="{{ url_for('admin.delete_user', user_id=mod.id) }}" method="POST" onsubmit="return confirm('Moderator löschen?');">
+            <form action="{{ url_for('admin.delete_user', user_id=mod.id) }}" method="POST"
+                onsubmit="return confirm('Moderator löschen?');">
                 <button type="submit" class="btn-icon" style="color: var(--danger);">✕</button>
             </form>
         </div>
@@ -216,21 +291,27 @@
         <div class="clan-header">
             <span style="color: #e91e63;">🚩 {{ clan.name }}</span>
             <div>
-                <button onclick="document.getElementById('pw-reset-{{ clan.id }}').style.display = document.getElementById('pw-reset-{{ clan.id }}').style.display === 'none' ? 'flex' : 'none'" 
-                        class="btn-small btn-secondary">
+                <button
+                    onclick="document.getElementById('pw-reset-{{ clan.id }}').style.display = document.getElementById('pw-reset-{{ clan.id }}').style.display === 'none' ? 'flex' : 'none'"
+                    class="btn-small btn-secondary">
                     🔑 PW Reset
                 </button>
-                <form action="{{ url_for('admin.delete_clan', clan_id=clan.id) }}" method="POST" onsubmit="return confirm('Clan {{ clan.name }} wirklich löschen? Alle Teams darin werden gelöscht!');" style="display:inline;">
-                    <button type="submit" class="btn-small" style="background:transparent; border:1px solid var(--danger); color:var(--danger); margin-left: 5px;">Löschen</button>
+                <form action="{{ url_for('admin.delete_clan', clan_id=clan.id) }}" method="POST"
+                    onsubmit="return confirm('Clan {{ clan.name }} wirklich löschen? Alle Teams darin werden gelöscht!');"
+                    style="display:inline;">
+                    <button type="submit" class="btn-small"
+                        style="background:transparent; border:1px solid var(--danger); color:var(--danger); margin-left: 5px;">Löschen</button>
                 </form>
             </div>
         </div>
 
         <div id="pw-reset-{{ clan.id }}" class="pw-reset-box" style="display: none;">
             <span style="color: var(--text-muted); font-size: 0.9rem;">Neues Clan-Admin PW:</span>
-            <form action="{{ url_for('admin.admin_reset_clan_password', clan_id=clan.id) }}" method="POST" style="display: flex; gap: 10px; flex: 1; flex-wrap:wrap;">
+            <form action="{{ url_for('admin.admin_reset_clan_password', clan_id=clan.id) }}" method="POST"
+                style="display: flex; gap: 10px; flex: 1; flex-wrap:wrap;">
                 <input type="text" name="new_password" placeholder="Passwort..." required style="flex: 1;">
-                <button type="submit" class="btn btn-small" style="background: var(--warning); color: black;">Speichern</button>
+                <button type="submit" class="btn btn-small"
+                    style="background: var(--warning); color: black;">Speichern</button>
             </form>
         </div>
 
@@ -238,18 +319,21 @@
             {% for team in clan.members %}
             <div class="team-item">
                 <span style="display:flex; align-items:center; gap:8px;">
-                    {% if team.is_clan_admin %}👑{% else %}👤{% endif %} 
-                    {{ team.username }}
+                    {% if team.is_clan_admin %}👑{% else %}👤{% endif %}
+                    {{ team.display_name }}
                 </span>
                 <div>
                     <span class="token-badge" title="Login Token">{{ team.token }}</span>
-                    <form action="{{ url_for('admin.delete_user', user_id=team.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Team löschen?');">
-                        <button type="submit" class="btn-icon" style="color: var(--danger); margin-left:10px;">✕</button>
+                    <form action="{{ url_for('admin.delete_user', user_id=team.id) }}" method="POST"
+                        style="display:inline;" onsubmit="return confirm('Team löschen?');">
+                        <button type="submit" class="btn-icon"
+                            style="color: var(--danger); margin-left:10px;">✕</button>
                     </form>
                 </div>
             </div>
             {% else %}
-            <div class="team-item" style="color: var(--text-muted); font-style: italic; justify-content: center;">Keine Teams in diesem Clan.</div>
+            <div class="team-item" style="color: var(--text-muted); font-style: italic; justify-content: center;">Keine
+                Teams in diesem Clan.</div>
             {% endfor %}
         </div>
     </div>
@@ -262,10 +346,11 @@
         </div>
         {% for team in users_no_clan %}
         <div class="team-item">
-            <span>👤 {{ team.username }}</span>
+            <span>👤 {{ team.display_name }}</span>
             <div>
                 <span class="token-badge">{{ team.token }}</span>
-                <form action="{{ url_for('admin.delete_user', user_id=team.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Team löschen?');">
+                <form action="{{ url_for('admin.delete_user', user_id=team.id) }}" method="POST" style="display:inline;"
+                    onsubmit="return confirm('Team löschen?');">
                     <button type="submit" class="btn-icon" style="color: var(--danger); margin-left:10px;">✕</button>
                 </form>
             </div>

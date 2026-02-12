@@ -3,33 +3,150 @@
 {% block content %}
 <style>
     /* Styles wie gehabt ... */
-    .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
-    .map-card { background: #2a2a2a; border: 2px solid #444; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .map-image { width: 100%; height: 80px; object-fit: cover; display: block; }
-    .map-name { padding: 5px; text-align: center; font-weight: bold; font-size: 0.8rem; color: #fff; }
-    
-    .is-banned { filter: grayscale(100%); opacity: 0.6; cursor: not-allowed; border-color: #5a1a1a; }
-    .banned-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; }
-    .banned-text { color: #f44336; border: 2px solid #f44336; padding: 2px 8px; transform: rotate(-15deg); font-weight: 900; }
-    .is-banned .banned-overlay { display: flex; }
+    .map-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
 
-    .is-picked { border-color: #2e7d32; box-shadow: 0 0 10px #2e7d32; }
-    .picked-badge { position: absolute; top: 5px; right: 5px; background: #2e7d32; color: white; padding: 2px 6px; border-radius: 4px; display: none; font-size: 0.7rem; }
-    .is-picked .picked-badge { display: block; }
+    .map-card {
+        background: #2a2a2a;
+        border: 2px solid #444;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
 
-    .chat-container { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; margin-top: 20px; display: flex; flex-direction: column; height: 50vh; }
-    #chatBox { flex: 1; overflow-y: auto; padding: 10px; background: #151515; }
-    .chat-input-area { display: flex; gap: 10px; padding: 10px; border-top: 1px solid #333; background: #222; }
-    .chat-input { flex: 1; padding: 10px; background: #333; border: none; color: white; border-radius: 20px; font-size: 16px; }
+    .map-image {
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .map-name {
+        padding: 5px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+        color: #fff;
+    }
+
+    .is-banned {
+        filter: grayscale(100%);
+        opacity: 0.6;
+        cursor: not-allowed;
+        border-color: #5a1a1a;
+    }
+
+    .banned-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .banned-text {
+        color: #f44336;
+        border: 2px solid #f44336;
+        padding: 2px 8px;
+        transform: rotate(-15deg);
+        font-weight: 900;
+    }
+
+    .is-banned .banned-overlay {
+        display: flex;
+    }
+
+    .is-picked {
+        border-color: #2e7d32;
+        box-shadow: 0 0 10px #2e7d32;
+    }
+
+    .picked-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #2e7d32;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: none;
+        font-size: 0.7rem;
+    }
+
+    .is-picked .picked-badge {
+        display: block;
+    }
+
+    .chat-container {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        height: 50vh;
+    }
+
+    #chatBox {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        background: #151515;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .chat-input-area {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        border-top: 1px solid #333;
+        background: #222;
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 10px;
+        background: #333;
+        border: none;
+        color: white;
+        border-radius: 20px;
+        font-size: 16px;
+    }
 
     /* CLAN HEADER STYLES */
-    .team-display { display: flex; flex-direction: column; align-items: center; }
-    .clan-sub { font-size: 0.9rem; color: #aaa; font-weight: normal; margin-top: 2px; }
-    .vs-text { margin: 0 15px; color: #666; font-size: 1.2rem; align-self: center; }
+    .team-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .clan-sub {
+        font-size: 0.9rem;
+        color: #aaa;
+        font-weight: normal;
+        margin-top: 2px;
+    }
+
+    .vs-text {
+        margin: 0 15px;
+        color: #666;
+        font-size: 1.2rem;
+        align-self: center;
+    }
 
     /* BANNED PLAYER WARNING STYLE */
     .ban-warning-box {
-        margin: 20px 0; /* Mehr Abstand */
+        margin: 20px 0;
+        /* Mehr Abstand */
         background: rgba(211, 47, 47, 0.15);
         border: 1px solid #d32f2f;
         border-radius: 8px;
@@ -41,12 +158,13 @@
         gap: 10px;
         box-shadow: 0 0 15px rgba(211, 47, 47, 0.2);
     }
+
     .ban-warning-title {
-        color: #f44336; 
-        font-weight: bold; 
-        display: flex; 
-        align-items: center; 
-        gap: 10px; 
+        color: #f44336;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 10px;
         font-size: 1.1rem;
         border-bottom: 1px solid rgba(244, 67, 54, 0.3);
         padding-bottom: 10px;
@@ -55,18 +173,34 @@
 </style>
 
 <div class="container">
-    
+
     <div class="card" style="text-align: center; border-left: 5px solid #fbc02d; padding: 15px;" id="statusCard">
         <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
             <div class="team-display">
-                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_a }}</span>
+                {% if match.team_a_logo %}
+                <img src="{{ url_for('static', filename='logos/' + match.team_a_logo) }}"
+                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #fbc02d; margin-bottom: 5px;">
+                {% else %}
+                <div
+                    style="width: 60px; height: 60px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 5px; border: 2px solid #444;">
+                    👤</div>
+                {% endif %}
+                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_a | strip_clan_tag }}</span>
                 {% if match.team_a_clan %}<span class="clan-sub">({{ match.team_a_clan }})</span>{% endif %}
             </div>
-            
+
             <span class="vs-text">VS</span>
-            
+
             <div class="team-display">
-                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_b }}</span>
+                {% if match.team_b_logo %}
+                <img src="{{ url_for('static', filename='logos/' + match.team_b_logo) }}"
+                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid #fbc02d; margin-bottom: 5px;">
+                {% else %}
+                <div
+                    style="width: 60px; height: 60px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 5px; border: 2px solid #444;">
+                    👤</div>
+                {% endif %}
+                <span style="font-size: 1.5rem; font-weight: bold;">{{ match.team_b | strip_clan_tag }}</span>
                 {% if match.team_b_clan %}<span class="clan-sub">({{ match.team_b_clan }})</span>{% endif %}
             </div>
         </div>
@@ -74,66 +208,168 @@
         <h3 style="margin: 0; font-size: 1.2rem;" id="statusHeadline">Lade Status...</h3>
     </div>
 
-    {% if members_a or members_b %}
-        {% set ns = namespace(has_bans=False) %}
-        
-        {# Prüfen ob Bans existieren #}
-        {% for m in members_a %}
-            {% if m.banned_until and m.banned_until > now %}{% set ns.has_bans = True %}{% endif %}
-        {% endfor %}
-        {% for m in members_b %}
-            {% if m.banned_until and m.banned_until > now %}{% set ns.has_bans = True %}{% endif %}
-        {% endfor %}
+    <!-- SCHEDULING SECTION -->
+    <div class="card" style="margin-bottom: 20px;">
+        <h3 style="margin-top: 0;">📅 Terminvereinbarung (Woche {{ match.match_week }})</h3>
+        {% if match.scheduled_date %}
+        <p class="status-active" style="color: #4caf50; font-weight: bold; font-size: 1.1em;">
+            ✅ Bestätigter Termin: {{ match.scheduled_date.strftime('%d.%m.%Y %H:%M') }}
+        </p>
 
-        {% if ns.has_bans %}
-        <div class="ban-warning-box">
-            <div class="ban-warning-title">
-                ⛔ ACHTUNG: Gesperrte Spieler im Match!
+        <!-- READY BUTTON AREA -->
+        <div
+            style="background: #222; padding: 15px; border-radius: 4px; margin-top: 15px; display: flex; justify-content: space-around; align-items: center;">
+            <div style="text-align: center; opacity: {{ '1' if match.ready_a else '0.5' }};">
+                <div style="font-weight: bold;">{{ match.team_a | strip_clan_tag }}</div>
+                <div style="font-size: 1.5em;">{{ '✅ BEREIT' if match.ready_a else '⏳ WARTEN' }}</div>
+                {% if current_user.username == match.team_a %}
+                <form method="POST">
+                    <button name="toggle_ready" class="btn"
+                        style="background: {{ 'red' if match.ready_a else '#4caf50' }}; margin-top: 5px;">
+                        {{ 'Nicht Bereit' if match.ready_a else 'BEREIT' }}
+                    </button>
+                </form>
+                {% endif %}
             </div>
-            <div style="color: #ddd;">Folgende Spieler sind aktuell gesperrt und dürfen nicht antreten:</div>
-            <ul style="margin: 0 0 0 20px; padding: 0;">
-                
-                {# Team A Bans auflisten #}
-                {% for m in members_a %}
-                    {% if m.banned_until and m.banned_until > now %}
-                    <li style="margin-top: 5px;">
-                        <strong style="color: white;" title="ID: {{ m.activision_id }}">{{ m.gamertag }}</strong> 
-                        <span style="color: #aaa;">(Team: {{ match.team_a }})</span>
-                        <br>
-                        <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
-                        <span style="font-size: 0.8em; color: #888;"> — Bis: {{ m.banned_until.strftime('%d.%m.%Y %H:%M') }}</span>
-                    </li>
-                    {% endif %}
-                {% endfor %}
 
-                {# Team B Bans auflisten #}
-                {% for m in members_b %}
-                    {% if m.banned_until and m.banned_until > now %}
-                    <li style="margin-top: 5px;">
-                        <strong style="color: white;" title="ID: {{ m.activision_id }}">{{ m.gamertag }}</strong> 
-                        <span style="color: #aaa;">(Team: {{ match.team_b }})</span>
-                        <br>
-                        <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
-                        <span style="font-size: 0.8em; color: #888;"> — Bis: {{ m.banned_until.strftime('%d.%m.%Y %H:%M') }}</span>
-                    </li>
-                    {% endif %}
-                {% endfor %}
+            <div style="font-size: 2em;">VS</div>
 
-            </ul>
+            <div style="text-align: center; opacity: {{ '1' if match.ready_b else '0.5' }};">
+                <div style="font-weight: bold;">{{ match.team_b | strip_clan_tag }}</div>
+                <div style="font-size: 1.5em;">{{ '✅ BEREIT' if match.ready_b else '⏳ WARTEN' }}</div>
+                {% if current_user.username == match.team_b %}
+                <form method="POST">
+                    <button name="toggle_ready" class="btn"
+                        style="background: {{ 'red' if match.ready_b else '#4caf50' }}; margin-top: 5px;">
+                        {{ 'Nicht Bereit' if match.ready_b else 'BEREIT' }}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
         </div>
+        {% if not (match.ready_a and match.ready_b) %}
+        <p style="text-align: center; color: #f44336; margin-top: 10px;">
+            ⚠ Ban/Pick Phase startet erst, wenn beide Teams BEREIT sind (ab 15 Min vor Start).
+        </p>
         {% endif %}
+
+        {% else %}
+        <p style="color: #aaa;">Noch kein Termin festgelegt.</p>
+        <div
+            style="background: #222; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 0.9em; border-left: 3px solid #ff9800;">
+            <strong style="color: #ff9800;">Regelwerk:</strong><br>
+            Bis <strong>Mittwoch 23:59</strong> der Spielwoche muss ein Termin vereinbart sein.<br>
+            Andernfalls wird automatisch <strong>Freitag 20:30</strong> gesetzt.
+        </div>
+
+        <div class="scheduling-grid" style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <!-- Team A Proposal -->
+            <div style="flex: 1; border: 1px solid #444; padding: 10px; background: #1a1a1a; min-width: 250px;">
+                <h4 style="margin: 0 0 10px 0;">{{ match.team_a | strip_clan_tag }}</h4>
+                {% if match.proposed_date_a %}
+                <p style="color: #2196f3; font-weight: bold;">Vorschlag: {{ match.proposed_date_a.strftime('%d.%m.
+                    %H:%M') }}</p>
+                {% if current_user.username == match.team_b %}
+                <form method="POST"><button name="accept_proposal_a" class="btn"
+                        style="background: #4caf50; width: 100%;">Termin Akzeptieren</button></form>
+                {% endif %}
+                {% else %}
+                <p style="color: #666;">Kein Vorschlag</p>
+                {% endif %}
+            </div>
+            <!-- Team B Proposal -->
+            <div style="flex: 1; border: 1px solid #444; padding: 10px; background: #1a1a1a; min-width: 250px;">
+                <h4 style="margin: 0 0 10px 0;">{{ match.team_b | strip_clan_tag }}</h4>
+                {% if match.proposed_date_b %}
+                <p style="color: #2196f3; font-weight: bold;">Vorschlag: {{ match.proposed_date_b.strftime('%d.%m.
+                    %H:%M') }}</p>
+                {% if current_user.username == match.team_a %}
+                <form method="POST"><button name="accept_proposal_b" class="btn"
+                        style="background: #4caf50; width: 100%;">Termin Akzeptieren</button></form>
+                {% endif %}
+                {% else %}
+                <p style="color: #666;">Kein Vorschlag</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if current_user.username in [match.team_a, match.team_b] %}
+        <form method="POST" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Neuen Termin vorschlagen:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="datetime-local" name="proposal_datetime" required
+                    style="padding: 10px; background: #333; border: 1px solid #555; color: white; flex: 1;">
+                <button name="propose_date" class="btn" style="background: #2196f3;">Senden</button>
+            </div>
+        </form>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    {% if members_a or members_b %}
+    {% set ns = namespace(has_bans=False) %}
+
+    {# Prüfen ob Bans existieren #}
+    {% for m in members_a %}
+    {% if m.banned_until and m.banned_until > now %}{% set ns.has_bans = True %}{% endif %}
+    {% endfor %}
+    {% for m in members_b %}
+    {% if m.banned_until and m.banned_until > now %}{% set ns.has_bans = True %}{% endif %}
+    {% endfor %}
+
+    {% if ns.has_bans %}
+    <div class="ban-warning-box">
+        <div class="ban-warning-title">
+            ⛔ ACHTUNG: Gesperrte Spieler im Match!
+        </div>
+        <div style="color: #ddd;">Folgende Spieler sind aktuell gesperrt und dürfen nicht antreten:</div>
+        <ul style="margin: 0 0 0 20px; padding: 0;">
+
+            {# Team A Bans auflisten #}
+            {% for m in members_a %}
+            {% if m.banned_until and m.banned_until > now %}
+            <li style="margin-top: 5px;">
+                <strong style="color: white;" title="ID: {{ m.activision_id }}">{{ m.gamertag }}</strong>
+                <span style="color: #aaa;">(Team: {{ match.team_a }})</span>
+                <br>
+                <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
+                <span style="font-size: 0.8em; color: #888;"> — Bis: {{ m.banned_until.strftime('%d.%m.%Y %H:%M')
+                    }}</span>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            {# Team B Bans auflisten #}
+            {% for m in members_b %}
+            {% if m.banned_until and m.banned_until > now %}
+            <li style="margin-top: 5px;">
+                <strong style="color: white;" title="ID: {{ m.activision_id }}">{{ m.gamertag }}</strong>
+                <span style="color: #aaa;">(Team: {{ match.team_b }})</span>
+                <br>
+                <span style="font-size: 0.9em; color: #f44336;">Grund: {{ m.ban_reason or 'Admin Bann' }}</span>
+                <span style="font-size: 0.8em; color: #888;"> — Bis: {{ m.banned_until.strftime('%d.%m.%Y %H:%M')
+                    }}</span>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+        </ul>
+    </div>
     {% endif %}
-    <div id="votingSection">
+    {% endif %}
+    <div id="votingSection"
+        style="opacity: {{ '1' if match.ready_a and match.ready_b else '0.3' }}; pointer-events: {{ 'auto' if match.ready_a and match.ready_b else 'none' }};">
         <form method="POST">
             <div class="map-grid">
                 {% for map in all_maps %}
-                    <button type="submit" name="selected_map" value="{{ map.name }}" 
-                            class="map-card">
-                        <img src="{{ url_for('static', filename='map_images/' + map.image_file) }}" class="map-image">
-                        <div class="map-name">{{ map.name }}</div>
-                        <div class="banned-overlay"><div class="banned-text">BANNED</div></div>
-                        <div class="picked-badge">PICKED</div>
-                    </button>
+                <button type="submit" name="selected_map" value="{{ map.name }}" class="map-card">
+                    <img src="{{ url_for('static', filename='map_images/' + map.image_file) }}" class="map-image">
+                    <div class="map-name">{{ map.name }}</div>
+                    <div class="banned-overlay">
+                        <div class="banned-text">BANNED</div>
+                    </div>
+                    <div class="picked-badge">PICKED</div>
+                </button>
                 {% endfor %}
             </div>
         </form>
@@ -141,40 +377,49 @@
     </div>
 
     <div id="scoringSection" class="card" style="display: none;">
-        
+
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px;">
             <div style="font-size: 0.8rem; color: #888;">LOBBY CODE</div>
-            <div id="lobbyCodeDisplay" style="font-size: 1.8rem; font-weight: bold; color: #ff9800; margin: 5px 0;">...</div>
+            <div id="lobbyCodeDisplay" style="font-size: 1.8rem; font-weight: bold; color: #ff9800; margin: 5px 0;">...
+            </div>
             <form method="POST" style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
-                <input type="text" name="lobby_code" placeholder="Code" style="padding: 8px; background: #333; border: 1px solid #555; color: white; width: 120px;">
+                <input type="text" name="lobby_code" placeholder="Code"
+                    style="padding: 8px; background: #333; border: 1px solid #555; color: white; width: 120px;">
                 <button class="btn-small" style="background: #ff9800;">Set</button>
             </form>
         </div>
 
         <form method="POST">
             <input type="hidden" name="submit_scores" value="true">
-            
+
             <div style="overflow-x: auto;">
                 <table style="width:100%; border-collapse: collapse; min-width: 300px; margin-bottom: 15px;">
                     <thead>
                         <tr style="border-bottom: 1px solid #555;">
                             <th>Map</th>
                             <th>
-                                {{ match.team_a }}
-                                {% if match.team_a_clan %}<br><small style="color:#888; font-weight:normal;">({{ match.team_a_clan }})</small>{% endif %}
+                                {{ match.team_a | strip_clan_tag }}
+                                {% if match.team_a_clan %}<br><small style="color:#888; font-weight:normal;">({{
+                                    match.team_a_clan }})</small>{% endif %}
                             </th>
                             <th>
-                                {{ match.team_b }}
-                                {% if match.team_b_clan %}<br><small style="color:#888; font-weight:normal;">({{ match.team_b_clan }})</small>{% endif %}
+                                {{ match.team_b | strip_clan_tag }}
+                                {% if match.team_b_clan %}<br><small style="color:#888; font-weight:normal;">({{
+                                    match.team_b_clan }})</small>{% endif %}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for i in range(1, 6) %}
                         <tr style="border-bottom: 1px solid #333;">
-                            <td style="padding:10px;"><small>Runde {{i}}</small><br><strong class="map-slot-{{ i-1 }}"></strong></td>
-                            <td style="text-align:center;"><input type="number" name="score_a_{{ i }}" min="0" value="0" style="width:50px; text-align:center; padding:5px; background:#222; color:white; border:1px solid #444;"></td>
-                            <td style="text-align:center;"><input type="number" name="score_b_{{ i }}" min="0" value="0" style="width:50px; text-align:center; padding:5px; background:#222; color:white; border:1px solid #444;"></td>
+                            <td style="padding:10px;"><small>Runde {{i}}</small><br><strong
+                                    class="map-slot-{{ i-1 }}"></strong></td>
+                            <td style="text-align:center;"><input type="number" name="score_a_{{ i }}" min="0" value="0"
+                                    style="width:50px; text-align:center; padding:5px; background:#222; color:white; border:1px solid #444;">
+                            </td>
+                            <td style="text-align:center;"><input type="number" name="score_b_{{ i }}" min="0" value="0"
+                                    style="width:50px; text-align:center; padding:5px; background:#222; color:white; border:1px solid #444;">
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -184,23 +429,26 @@
             <h4 style="margin: 10px 0;">Lineup wählen</h4>
             <div style="margin-bottom: 15px;">
                 {% if current_user.team_members %}
-                    {% for member in current_user.team_members %}
-                    {% set is_me_banned = member.banned_until and member.banned_until > now %}
-                    <label style="display: block; margin-bottom: 5px; background: #333; padding: 8px; border-radius: 4px; {% if is_me_banned %}opacity:0.6;{% endif %}"
-                           title="Activision ID: {{ member.activision_id }}">
-                        
-                        <input type="checkbox" name="lineup_member" value="{{ member.gamertag }}" {% if is_me_banned %}disabled{% endif %}> 
-                        
-                        <strong style="color: white; margin-left: 5px;">{{ member.gamertag }}</strong>
-                        <span style="color: #888; font-size: 0.85em; margin-left: 5px;">({{ member.activision_id }})</span>
-                        
-                        {% if is_me_banned %}
-                            <span style="color:#f44336; font-size:0.8em; font-weight:bold; margin-left:5px;">(GESPERRT)</span>
-                        {% endif %}
-                    </label>
-                    {% endfor %}
+                {% for member in current_user.team_members %}
+                {% set is_me_banned = member.banned_until and member.banned_until > now %}
+                <label
+                    style="display: block; margin-bottom: 5px; background: #333; padding: 8px; border-radius: 4px; {% if is_me_banned %}opacity:0.6;{% endif %}"
+                    title="Activision ID: {{ member.activision_id }}">
+
+                    <input type="checkbox" name="lineup_member" value="{{ member.gamertag }}" {% if is_me_banned
+                        %}disabled{% endif %}>
+
+                    <strong style="color: white; margin-left: 5px;">{{ member.gamertag }}</strong>
+                    <span style="color: #888; font-size: 0.85em; margin-left: 5px;">({{ member.activision_id }})</span>
+
+                    {% if is_me_banned %}
+                    <span style="color:#f44336; font-size:0.8em; font-weight:bold; margin-left:5px;">(GESPERRT)</span>
+                    {% endif %}
+                </label>
+                {% endfor %}
                 {% else %}
-                    <p style="color:#888; font-size:0.9rem;">Keine Mitglieder im Roster gefunden. (<a href="{{ url_for('main.dashboard') }}">Hinzufügen</a>)</p>
+                <p style="color:#888; font-size:0.9rem;">Keine Mitglieder im Roster gefunden. (<a
+                        href="{{ url_for('main.dashboard') }}">Hinzufügen</a>)</p>
                 {% endif %}
             </div>
 
@@ -218,10 +466,15 @@
     </div>
 
     <div class="chat-container">
+        <div style="padding: 15px; border-bottom: 1px solid #333; background: #202020; font-weight: bold;">
+            💬 Match Chat
+        </div>
         <div id="chatBox"></div>
         <div class="chat-input-area">
-            <input type="text" id="msgInput" class="chat-input" placeholder="Nachricht...">
-            <button onclick="sendMsg()" class="btn-small" style="background: #2196f3; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">➤</button>
+            <input type="text" id="msgInput" class="chat-input" placeholder="Nachricht..."
+                onkeypress="handleEnter(event)">
+            <button onclick="sendMsg()" class="btn-small"
+                style="background: #2196f3; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">➤</button>
         </div>
     </div>
 
@@ -231,7 +484,7 @@
     const matchId = {{ match.id }};
     const currentUser = "{{ current_user.username }}";
     const isAdmin = {{ 'true' if current_user.is_admin or current_user.is_mod else 'false' }};
-    
+
     const statusHeadline = document.getElementById('statusHeadline');
     const statusCard = document.getElementById('statusCard');
     const votingSec = document.getElementById('votingSection');
@@ -246,7 +499,7 @@
             // API FÜR LIGA MATCH
             const res = await fetch(`/api/league_match/${matchId}/state`);
             const data = await res.json();
-            
+
             let text = "";
             let color = "#fbc02d";
             const state = data.state;
@@ -303,7 +556,7 @@
             if (data.picked.length > 0) {
                 data.picked.forEach((mapName, index) => {
                     const slot = document.querySelector(`.map-slot-${index}`);
-                    if(slot) slot.innerText = mapName;
+                    if (slot) slot.innerText = mapName;
                 });
             }
 
@@ -314,10 +567,14 @@
 
     async function sendMsg() {
         const txt = document.getElementById('msgInput').value;
-        if(!txt) return;
+        if (!txt) return;
         // API FÜR LIGA CHAT
-        await fetch(`/api/league_match/${matchId}/chat`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: txt}) });
+        await fetch(`/api/league_match/${matchId}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt }) });
         document.getElementById('msgInput').value = ''; loadChat();
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') sendMsg();
     }
 
     async function loadChat() {
@@ -326,14 +583,15 @@
             const data = await res.json();
             const oldHtml = chatBox.innerHTML;
             const newHtml = data.map(m => {
-                let color = m.is_admin ? '#e65100' : (m.is_mod ? '#00bcd4' : '#333');
-                return `<div style="margin-bottom: 5px; text-align: ${m.is_me ? 'right':'left'}">
-                            <span style="font-size: 0.7em; color: #888;">${m.user}</span><br>
-                            <span style="background: ${m.is_me ? '#1976d2' : color}; padding: 5px 10px; border-radius: 4px; display: inline-block; color: white;">${m.text}</span>
+                let style = m.is_me ? "background:#1976d2; align-self:flex-end;" : "background:#333; align-self:flex-start;";
+                let badge = m.is_admin ? "🛡️ " : (m.is_mod ? "👮 " : "");
+                return `<div style="${style} padding: 8px 12px; border-radius: 6px; max-width: 80%; word-wrap: break-word;">
+                            <div style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 2px;">${badge}${m.user}</div>
+                            ${m.text}
                         </div>`;
             }).join('');
             if (oldHtml !== newHtml) { chatBox.innerHTML = newHtml; chatBox.scrollTop = chatBox.scrollHeight; }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     setInterval(() => { updateState(); loadChat(); }, 3000);

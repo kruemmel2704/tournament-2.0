@@ -4,6 +4,7 @@ from app.models import Cup, CupMatch, User, Map
 from app.extensions import db
 import json
 from datetime import datetime
+from app.utils import get_current_time
 
 cup_bp = Blueprint('cup', __name__)
 
@@ -80,7 +81,7 @@ def setup_cup_rosters(cup_id):
         return redirect(url_for('main.dashboard'))
 
     # WICHTIG: 'now' übergeben, damit das HTML prüfen kann, wer gebannt ist
-    return render_template('setup_cup_rosters.html', cup=cup, teams=teams_obj, now=datetime.now())
+    return render_template('setup_cup_rosters.html', cup=cup, teams=teams_obj, now=get_current_time())
 
 # --- 3. EINZELNES MATCH ANSEHEN ---
 @cup_bp.route('/cup_match/<int:match_id>', methods=['GET', 'POST'])
@@ -179,7 +180,34 @@ def cup_details(cup_id):
                 elif wa>wb: s['lost_matches']+=1
                 else: s['draw_matches']+=1
                 
-    return render_template('cup_details.html', cup=cup, standings=sorted(standings.items(), key=lambda x: (x[1]['won_matches'], x[1]['own_score']), reverse=True))
+    # --- CLIENT-SIDE VISIBILITY LOGIC (Blind Bracket) ---
+    visible_match_ids = set()
+    cup_matches = cup.matches # Alle m
+
+    if current_user.is_admin or current_user.is_mod:
+        visible_match_ids = {m.id for m in cup_matches}
+    else:
+        # Für normale User: Nur Matches anzeigen, deren Vorgänger (chronologisch/Runde) beendet ist
+        user_matches = sorted(
+            [m for m in cup_matches if m.team_a == current_user.username or m.team_b == current_user.username],
+            key=lambda x: x.round_number
+        )
+        
+        # Logik: Runde 1 ist sichtbar. Nachfolgende nur wenn vorherige beendet.
+        for i, m in enumerate(user_matches):
+            if i == 0:
+                visible_match_ids.add(m.id)
+            else:
+                prev_match = user_matches[i-1]
+                if prev_match.state == 'finished':
+                    visible_match_ids.add(m.id)
+                else:
+                    break
+
+    return render_template('cup_details.html', 
+                           cup=cup, 
+                           standings=sorted(standings.items(), key=lambda x: (x[1]['won_matches'], x[1]['own_score']), reverse=True),
+                           visible_match_ids=visible_match_ids)
 
 # --- 5. VERWALTUNG (ARCHIVIEREN / LÖSCHEN) ---
 @cup_bp.route('/archive_cup/<int:cup_id>', methods=['POST'])

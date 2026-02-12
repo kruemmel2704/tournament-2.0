@@ -2,43 +2,48 @@
 
 {% block content %}
 <div class="container">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
         <h1 style="margin: 0; font-size: 1.8rem; color: #fff;">
             🏰 Clan: <span style="color: var(--primary);">{{ clan.name }}</span>
         </h1>
         <div style="display: flex; gap: 10px;">
             <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary btn-small">&larr; Dashboard</a>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-small" style="background: var(--primary);">Abmelden</a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-small"
+                style="background: var(--primary);">Abmelden</a>
         </div>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
-        
+
         <div>
             <h3 style="color: var(--success); margin-top: 0;">✅ Unsere Teams</h3>
             <div class="card">
                 <div class="card-body">
                     {% if clan.members %}
-                        <ul class="item-list" style="border: 1px solid var(--border-color); border-radius: 4px;">
-                            {% for member in clan.members %}
-                            {% if not member.is_clan_admin %}
-                            <li class="item-row">
-                                <div style="flex: 1;">
-                                    <div style="font-weight: bold; font-size: 1rem; color: #fff;">{{ member.username }}</div>
-                                    <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px;">
-                                        Token: <code style="color: var(--success); background: #111; padding: 2px 6px; border-radius: 3px; border: 1px solid #333;">{{ member.token }}</code>
-                                    </div>
+                    <ul class="item-list" style="border: 1px solid var(--border-color); border-radius: 4px;">
+                        {% for member in clan.members %}
+                        {% if not member.is_clan_admin %}
+                        <li class="item-row">
+                            <div style="flex: 1;">
+                                <div style="font-weight: bold; font-size: 1rem; color: #fff;">{{ member.username }}
                                 </div>
-                                <form action="{{ url_for('main.clan_remove_member', user_id=member.id) }}" method="POST" onsubmit="return confirm('Team entfernen?');">
-                                    <button type="submit" class="btn-icon" style="color: var(--danger);">🗑️</button>
-                                </form>
-                            </li>
-                            {% endif %}
-                            {% endfor %}
-                        </ul>
+                                <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px;">
+                                    Token: <code
+                                        style="color: var(--success); background: #111; padding: 2px 6px; border-radius: 3px; border: 1px solid #333;">{{ member.token }}</code>
+                                </div>
+                            </div>
+                            <form action="{{ url_for('main.clan_remove_member', user_id=member.id) }}" method="POST"
+                                onsubmit="return confirm('Team entfernen?');">
+                                <button type="submit" class="btn-icon" style="color: var(--danger);">🗑️</button>
+                            </form>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
                     {% else %}
-                        <p style="color: var(--text-muted); font-style: italic; text-align: center;">Keine Teams.</p>
+                    <p style="color: var(--text-muted); font-style: italic; text-align: center;">Keine Teams.</p>
                     {% endif %}
                 </div>
             </div>
@@ -46,18 +51,48 @@
 
         <div>
             <h3 style="color: #2196f3; margin-top: 0;">⚡ Management</h3>
-            
+
             <div class="card" style="margin-bottom: 25px;">
                 <div class="card-header" style="background: #232323; padding: 10px 15px;">
                     <h4 style="margin: 0; font-size: 1rem; color: #fff;">🆕 Neues Team anlegen</h4>
                 </div>
                 <div class="card-body">
-                    <form action="{{ url_for('main.clan_create_team') }}" method="POST" style="display: flex; gap: 10px;">
-                        <input type="text" name="team_name" placeholder="Team Name" required style="flex: 1; box-sizing: border-box;">
+                    <form action="{{ url_for('main.clan_create_team') }}" method="POST"
+                        style="display: flex; gap: 10px;">
+                        <input type="text" name="team_name" placeholder="Team Name" required
+                            style="flex: 1; box-sizing: border-box;">
                         <button type="submit" class="btn" style="background: #2196f3;">Erstellen</button>
                     </form>
                     <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
                         * Erstellt einen Account mit Auto-Token.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 25px;">
+                <div class="card-header" style="background: #232323; padding: 10px 15px;">
+                    <h4 style="margin: 0; font-size: 1rem; color: #fff;">🖼️ Clan Logo</h4>
+                </div>
+                <div class="card-body" style="display: flex; gap: 15px; align-items: center;">
+
+                    <div>
+                        {% if clan.logo_file %}
+                        <img src="{{ url_for('static', filename='logos/' + clan.logo_file) }}"
+                            style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 2px solid var(--primary); display: block;">
+                        {% else %}
+                        <div
+                            style="width: 60px; height: 60px; background: #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                            🛡️
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div style="flex: 1;">
+                        <form action="{{ url_for('main.upload_clan_logo') }}" method="POST"
+                            enctype="multipart/form-data" style="display: flex; gap: 5px; flex-direction: column;">
+                            <input type="file" name="clan_logo" accept="image/*" required style="font-size: 0.8rem;">
+                            <button type="submit" class="btn btn-small">Hochladen</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -67,9 +102,12 @@
                 <div class="card-body">
                     <h4 style="margin-top: 0; margin-bottom: 15px;">Passwort ändern</h4>
                     <form action="{{ url_for('main.clan_change_password') }}" method="POST">
-                        <input type="password" name="current_password" placeholder="Aktuelles Passwort" required style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
-                        <input type="password" name="new_password" placeholder="Neues Passwort" required style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
-                        <input type="password" name="confirm_password" placeholder="Bestätigen" required style="width: 100%; box-sizing: border-box; margin-bottom: 15px;">
+                        <input type="password" name="current_password" placeholder="Aktuelles Passwort" required
+                            style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
+                        <input type="password" name="new_password" placeholder="Neues Passwort" required
+                            style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
+                        <input type="password" name="confirm_password" placeholder="Bestätigen" required
+                            style="width: 100%; box-sizing: border-box; margin-bottom: 15px;">
                         <button type="submit" class="btn btn-secondary" style="width: 100%;">Speichern</button>
                     </form>
                 </div>
