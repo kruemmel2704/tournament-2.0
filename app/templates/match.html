@@ -208,6 +208,20 @@
     <div id="scoringSection" class="card" style="display: none;">
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px;">
             <div style="font-size: 0.8rem; color: #888;">LOBBY CODE</div>
+
+            <!-- LOBBY SETTINGS TOGGLE -->
+            <button type="button" class="btn-small btn-secondary" style="margin: 10px 0;" onclick="toggleLobbyRules()">
+                📜 Lobby Einstellungen anzeigen
+            </button>
+            <div id="lobbyRulesContainer" style="display: none; text-align: left; margin-bottom: 20px;">
+                {% include 'partials/_lobby_settings.html' %}
+            </div>
+            <script>
+                function toggleLobbyRules() {
+                    const el = document.getElementById('lobbyRulesContainer');
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                }
+            </script>
             <div id="lobbyCodeDisplay"
                 style="font-size: 1.8rem; letter-spacing: 3px; font-weight: bold; color: #ff9800; margin: 5px 0;">...
             </div>

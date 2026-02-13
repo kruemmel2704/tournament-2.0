@@ -380,6 +380,20 @@
 
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px;">
             <div style="font-size: 0.8rem; color: #888;">LOBBY CODE</div>
+
+            <!-- LOBBY SETTINGS TOGGLE -->
+            <button type="button" class="btn-small btn-secondary" style="margin: 10px 0;" onclick="toggleLobbyRules()">
+                📜 Lobby Einstellungen anzeigen
+            </button>
+            <div id="lobbyRulesContainer" style="display: none; text-align: left; margin-bottom: 20px;">
+                {% include 'partials/_lobby_settings.html' %}
+            </div>
+            <script>
+                function toggleLobbyRules() {
+                    const el = document.getElementById('lobbyRulesContainer');
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                }
+            </script>
             <div id="lobbyCodeDisplay" style="font-size: 1.8rem; font-weight: bold; color: #ff9800; margin: 5px 0;">...
             </div>
             <form method="POST" style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
@@ -410,14 +424,41 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% set current_draft = None %}
+                        {% if current_user.username == match.team_a and match.get_draft_scores_a() %}
+                        {% set current_draft = match.get_draft_scores_a() %}
+                        {% elif current_user.username == match.team_b and match.get_draft_scores_b() %}
+                        {% set current_draft = match.get_draft_scores_b() %}
+                        {% endif %}
+
+                        {% set final_scores_a = match.get_scores_a() %}
+                        {% set final_scores_b = match.get_scores_b() %}
+
                         {% for i in range(1, 6) %}
+                        {% set val_a = 0 %}
+                        {% set val_b = 0 %}
+                        {# Score A logic #}
+                        {% if current_draft and current_draft['a']|length >= i %}
+                        {% set val_a = current_draft['a'][i-1] %}
+                        {% elif final_scores_a and final_scores_a|length >= i %}
+                        {% set val_a = final_scores_a[i-1] %}
+                        {% endif %}
+                        {# Score B logic #}
+                        {% if current_draft and current_draft['b']|length >= i %}
+                        {% set val_b = current_draft['b'][i-1] %}
+                        {% elif final_scores_b and final_scores_b|length >= i %}
+                        {% set val_b = final_scores_b[i-1] %}
+                        {% endif %}
+
                         <tr style="border-bottom: 1px solid #333;">
                             <td style="padding:10px;"><small>Runde {{i}}</small><br><strong
                                     class="map-slot-{{ i-1 }}"></strong></td>
-                            <td style="text-align:center;"><input type="number" name="score_a_{{ i }}" min="0" value="0"
+                            <td style="text-align:center;"><input type="number" name="score_a_{{ i }}" min="0"
+                                    value="{{ val_a }}"
                                     style="width:50px; text-align:center; padding:5px; background:#222; color:white; border:1px solid #444;">
                             </td>
-                            <td style="text-align:center;"><input type="number" name="score_b_{{ i }}" min="0" value="0"
+                            <td style="text-align:center;"><input type="number" name="score_b_{{ i }}" min="0"
+                                    value="{{ val_b }}"
                                     style="width:50px; text-align:center; padding:5px; background:#222; color:white; border:1px solid #444;">
                             </td>
                         </tr>
@@ -456,145 +497,212 @@
         </form>
     </div>
 
-    <div id="confirmSection" class="card" style="display: none; text-align: center; border-left: 5px solid #4caf50;">
-        <h3 style="color: #4caf50;">✅ Bestätigung erforderlich</h3>
-        <p>Die Ergebnisse stimmen überein. Bitte bestätige das Lineup des Gegners.</p>
-        <form method="POST">
-            <input type="hidden" name="confirm_lineup" value="true">
-            <button class="btn" style="background: #4caf50; width: 100%;">Match Bestätigen & Beenden</button>
-        </form>
+    <div id="confirmSection" class="card" style="display: none; border-left: 5px solid #4caf50;">
+        <h3 style="color: #4caf50; margin-top: 0;">✅ Ergebnisse stimmen überein</h3>
+        <p style="margin-bottom: 20px;">Die eingegebenen Maps und Scores beider Teams sind identisch. Bitte prüfe nun
+            das Lineup des Gegners.</p>
+
+        <div style="background: #252525; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+            <h4 style="margin-top: 0; color: #aaa; text-transform: uppercase; font-size: 0.9rem;">
+                Kader von
+                {% if current_user.username == match.team_a %}
+                {{ match.team_b | strip_clan_tag }}
+                {% else %}
+                {{ match.team_a | strip_clan_tag }}
+                {% endif %}
+            </h4>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% if current_user.username == match.team_a %}
+                {% set opp_lineup = match.get_draft_lineup_b() %}
+                {% else %}
+                {% set opp_lineup = match.get_draft_lineup_a() %}
+                {% endif %}
+
+                {% if opp_lineup %}
+                {% for member in opp_lineup %}
+                <li style="padding: 5px 0; border-bottom: 1px solid #333; display: flex; align-items: center;">
+                    <span style="color: #4caf50; margin-right: 10px;">👤</span>
+                    <span style="font-weight: bold;">{{ member }}</span>
+                </li>
+                {% endfor %}
+                {% else %}
+                <li style="color: #888; font-style: italic;">Kein Lineup angegeben.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <form method="POST" style="flex: 1;">
+                <input type="hidden" name="confirm_lineup" value="true">
+                <button class="btn"
+                    style="background: #4caf50; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <span>✅</span> Lineup Akzeptieren
+                </button>
+            </form>
+
+            <form method="POST" style="flex: 1;">
+                <input type="hidden" name="report_conflict" value="true">
+                <button class="btn"
+                    style="background: #d32f2f; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <span>🚨</span> Ablehnen / Konflikt
+                </button>
+            </form>
+        </div>
+
+        <p style="font-size: 0.8rem; color: #888; margin-top: 15px; text-align: center;">
+            Bei Ablehnung wird der Status auf "Konflikt" gesetzt und ein Admin muss das Match prüfen.
+        </p>
+        <div id="conflictSection" class="card"
+            style="display: none; border-left: 5px solid #d32f2f; background: rgba(211, 47, 47, 0.1);">
+            <h3 style="color: #d32f2f; margin-top: 0;">🚨 KONFLIKT</h3>
+            <p style="margin-bottom: 10px;">Ein Team hat das Lineup oder die Ergebnisse abgelehnt, oder die Ergebnisse
+                stimmen nicht überein.</p>
+            <p style="font-weight: bold; color: #fff;">Ein Admin muss dieses Match überprüfen.</p>
+            <p style="font-size: 0.9rem; color: #aaa;">Bitte wende dich an den Support oder warte auf einen Admin.</p>
+        </div>
+
+        <div class="chat-container">
+            <div style="padding: 15px; border-bottom: 1px solid #333; background: #202020; font-weight: bold;">
+                💬 Match Chat
+            </div>
+            <div id="chatBox"></div>
+            <div class="chat-input-area">
+                <input type="text" id="msgInput" class="chat-input" placeholder="Nachricht..."
+                    onkeypress="handleEnter(event)">
+                <button onclick="sendMsg()" class="btn-small"
+                    style="background: #2196f3; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">➤</button>
+            </div>
+        </div>
+
     </div>
 
-    <div class="chat-container">
-        <div style="padding: 15px; border-bottom: 1px solid #333; background: #202020; font-weight: bold;">
-            💬 Match Chat
-        </div>
-        <div id="chatBox"></div>
-        <div class="chat-input-area">
-            <input type="text" id="msgInput" class="chat-input" placeholder="Nachricht..."
-                onkeypress="handleEnter(event)">
-            <button onclick="sendMsg()" class="btn-small"
-                style="background: #2196f3; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">➤</button>
-        </div>
-    </div>
+    <script>
+        const matchId = {{ match.id }};
+        const currentUser = "{{ current_user.username }}";
+        const isAdmin = {{ 'true' if current_user.is_admin or current_user.is_mod else 'false' }};
 
-</div>
+        const statusHeadline = document.getElementById('statusHeadline');
+        const statusCard = document.getElementById('statusCard');
+        const votingSec = document.getElementById('votingSection');
+        const scoringSec = document.getElementById('scoringSection');
+        const confirmSec = document.getElementById('confirmSection');
+        const conflictSec = document.getElementById('conflictSection'); // NEU
+        const waitMsg = document.getElementById('waitMessage');
+        const lobbyDisplay = document.getElementById('lobbyCodeDisplay');
+        const chatBox = document.getElementById('chatBox');
 
-<script>
-    const matchId = {{ match.id }};
-    const currentUser = "{{ current_user.username }}";
-    const isAdmin = {{ 'true' if current_user.is_admin or current_user.is_mod else 'false' }};
+        async function updateState() {
+            try {
+                // API FÜR LIGA MATCH
+                const res = await fetch(`/api/league_match/${matchId}/state`);
+                const data = await res.json();
 
-    const statusHeadline = document.getElementById('statusHeadline');
-    const statusCard = document.getElementById('statusCard');
-    const votingSec = document.getElementById('votingSection');
-    const scoringSec = document.getElementById('scoringSection');
-    const confirmSec = document.getElementById('confirmSection');
-    const waitMsg = document.getElementById('waitMessage');
-    const lobbyDisplay = document.getElementById('lobbyCodeDisplay');
-    const chatBox = document.getElementById('chatBox');
+                let text = "";
+                let color = "#fbc02d";
+                const state = data.state;
 
-    async function updateState() {
-        try {
-            // API FÜR LIGA MATCH
-            const res = await fetch(`/api/league_match/${matchId}/state`);
-            const data = await res.json();
+                // Sections Reset
+                votingSec.style.display = 'none';
+                scoringSec.style.display = 'none';
+                confirmSec.style.display = 'none';
+                if (conflictSec) conflictSec.style.display = 'none';
 
-            let text = "";
-            let color = "#fbc02d";
-            const state = data.state;
+                if (state.includes('ban')) {
+                    text = `🚫 BANN: ${data.active_team}`;
+                    color = "#d32f2f";
+                    votingSec.style.display = 'block';
+                } else if (state.includes('pick')) {
+                    text = `✅ PICK: ${data.active_team}`;
+                    color = "#1976d2";
+                    votingSec.style.display = 'block';
+                } else if (state === 'scoring_phase') {
+                    text = "📝 Ergebnisse & Lineup";
+                    color = "#ff9800";
+                    scoringSec.style.display = 'block';
+                } else if (state === 'confirming') {
+                    text = "⚠️ Auf Bestätigung warten";
+                    color = "#4caf50";
+                    confirmSec.style.display = 'block';
+                } else if (state === 'waiting_for_confirmation') {
+                    text = "⏳ Warte auf Eingaben...";
+                    color = "#ff9800";
+                    scoringSec.style.display = 'block';
+                    if (data.active_team) text = "⏳ Warte auf: " + data.active_team;
+                    if (data.has_draft_a && !data.has_draft_b) text = "✅ Team A bereit - Warte auf Team B";
+                    else if (!data.has_draft_a && data.has_draft_b) text = "✅ Team B bereit - Warte auf Team A";
+                } else if (state === 'finished') {
+                    text = "🏁 Match Beendet";
+                    color = "#4caf50";
+                    // Bei Finished kann man optional Scoring anzeigen (read-only)
+                    scoringSec.style.display = 'block';
+                } else if (state === 'conflict') {
+                    text = "🚨 KONFLIKT";
+                    color = "#d32f2f";
+                    if (conflictSec) conflictSec.style.display = 'block';
+                }
 
-            // Sections Reset
-            votingSec.style.display = 'none';
-            scoringSec.style.display = 'none';
-            confirmSec.style.display = 'none';
+                // ... (rest unchanged)
 
-            if (state.includes('ban')) {
-                text = `🚫 BANN: ${data.active_team}`;
-                color = "#d32f2f";
-                votingSec.style.display = 'block';
-            } else if (state.includes('pick')) {
-                text = `✅ PICK: ${data.active_team}`;
-                color = "#1976d2";
-                votingSec.style.display = 'block';
-            } else if (state === 'scoring_phase') {
-                text = "📝 Ergebnisse & Lineup";
-                color = "#ff9800";
-                scoringSec.style.display = 'block';
-            } else if (state === 'confirming') {
-                text = "⚠️ Auf Bestätigung warten";
-                color = "#4caf50";
-                confirmSec.style.display = 'block';
-            } else if (state === 'finished') {
-                text = "🏁 Match Beendet";
-                color = "#4caf50";
-                // Bei Finished kann man optional Scoring anzeigen (read-only)
-                scoringSec.style.display = 'block';
-            }
+                // Voting Buttons Logic
+                if (state.includes('ban') || state.includes('pick')) {
+                    const amIActive = (data.active_team === currentUser) || isAdmin;
+                    waitMsg.style.display = amIActive ? 'none' : 'block';
 
-            statusHeadline.innerText = text;
-            statusCard.style.borderLeftColor = color;
+                    const buttons = document.querySelectorAll('#votingSection button');
+                    buttons.forEach(btn => {
+                        const mapName = btn.value;
+                        const isBanned = data.banned.includes(mapName);
+                        const isPicked = data.picked.includes(mapName);
 
-            // Voting Buttons Logic
-            if (state.includes('ban') || state.includes('pick')) {
-                const amIActive = (data.active_team === currentUser) || isAdmin;
-                waitMsg.style.display = amIActive ? 'none' : 'block';
+                        btn.classList.remove('is-banned', 'is-picked');
+                        if (isBanned) btn.classList.add('is-banned');
+                        if (isPicked) btn.classList.add('is-picked');
+                        btn.disabled = isBanned || isPicked || !amIActive;
+                    });
+                }
 
-                const buttons = document.querySelectorAll('#votingSection button');
-                buttons.forEach(btn => {
-                    const mapName = btn.value;
-                    const isBanned = data.banned.includes(mapName);
-                    const isPicked = data.picked.includes(mapName);
+                if (data.picked.length > 0) {
+                    data.picked.forEach((mapName, index) => {
+                        const slot = document.querySelector(`.map-slot-${index}`);
+                        if (slot) slot.innerText = mapName;
+                    });
+                }
 
-                    btn.classList.remove('is-banned', 'is-picked');
-                    if (isBanned) btn.classList.add('is-banned');
-                    if (isPicked) btn.classList.add('is-picked');
-                    btn.disabled = isBanned || isPicked || !amIActive;
-                });
-            }
+                if (lobbyDisplay) lobbyDisplay.innerText = data.lobby_code ? data.lobby_code : "...";
 
-            if (data.picked.length > 0) {
-                data.picked.forEach((mapName, index) => {
-                    const slot = document.querySelector(`.map-slot-${index}`);
-                    if (slot) slot.innerText = mapName;
-                });
-            }
+            } catch (e) { }
+        }
 
-            if (lobbyDisplay) lobbyDisplay.innerText = data.lobby_code ? data.lobby_code : "...";
+        async function sendMsg() {
+            const txt = document.getElementById('msgInput').value;
+            if (!txt) return;
+            // API FÜR LIGA CHAT
+            await fetch(`/api/league_match/${matchId}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt }) });
+            document.getElementById('msgInput').value = ''; loadChat();
+        }
 
-        } catch (e) { }
-    }
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMsg();
+        }
 
-    async function sendMsg() {
-        const txt = document.getElementById('msgInput').value;
-        if (!txt) return;
-        // API FÜR LIGA CHAT
-        await fetch(`/api/league_match/${matchId}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt }) });
-        document.getElementById('msgInput').value = ''; loadChat();
-    }
-
-    function handleEnter(e) {
-        if (e.key === 'Enter') sendMsg();
-    }
-
-    async function loadChat() {
-        try {
-            const res = await fetch(`/api/league_match/${matchId}/chat`);
-            const data = await res.json();
-            const oldHtml = chatBox.innerHTML;
-            const newHtml = data.map(m => {
-                let style = m.is_me ? "background:#1976d2; align-self:flex-end;" : "background:#333; align-self:flex-start;";
-                let badge = m.is_admin ? "🛡️ " : (m.is_mod ? "👮 " : "");
-                return `<div style="${style} padding: 8px 12px; border-radius: 6px; max-width: 80%; word-wrap: break-word;">
+        async function loadChat() {
+            try {
+                const res = await fetch(`/api/league_match/${matchId}/chat`);
+                const data = await res.json();
+                const oldHtml = chatBox.innerHTML;
+                const newHtml = data.map(m => {
+                    let style = m.is_me ? "background:#1976d2; align-self:flex-end;" : "background:#333; align-self:flex-start;";
+                    let badge = m.is_admin ? "🛡️ " : (m.is_mod ? "👮 " : "");
+                    return `<div style="${style} padding: 8px 12px; border-radius: 6px; max-width: 80%; word-wrap: break-word;">
                             <div style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 2px;">${badge}${m.user}</div>
                             ${m.text}
                         </div>`;
-            }).join('');
-            if (oldHtml !== newHtml) { chatBox.innerHTML = newHtml; chatBox.scrollTop = chatBox.scrollHeight; }
-        } catch (e) { }
-    }
+                }).join('');
+                if (oldHtml !== newHtml) { chatBox.innerHTML = newHtml; chatBox.scrollTop = chatBox.scrollHeight; }
+            } catch (e) { }
+        }
 
-    setInterval(() => { updateState(); loadChat(); }, 3000);
-    updateState(); loadChat();
-</script>
-{% endblock %}
+        setInterval(() => { updateState(); loadChat(); }, 3000);
+        updateState(); loadChat();
+    </script>
+    {% endblock %}

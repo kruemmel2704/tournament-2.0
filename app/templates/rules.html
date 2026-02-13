@@ -4,17 +4,25 @@
 <style>
     /* --- REGELWERK DESIGN --- */
     .rules-header {
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 30px; border-bottom: 2px solid var(--primary); padding-bottom: 15px;
-        flex-wrap: wrap; gap: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     /* Editierbarer Bereich Container */
-    #rulesContent { outline: none; }
+    #rulesContent {
+        outline: none;
+    }
+
     #rulesContent[contenteditable="true"] {
         border: 2px dashed var(--primary);
         padding: 10px;
-        background: rgba(0,0,0,0.2);
+        background: rgba(0, 0, 0, 0.2);
     }
 
     .rules-card {
@@ -23,69 +31,85 @@
         border-radius: 8px;
         margin-bottom: 30px;
         overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .rules-card h2 {
-        margin: 0; padding: 15px 20px;
+        margin: 0;
+        padding: 15px 20px;
         background: #1f1f1f;
         font-size: 1.2rem;
         border-bottom: 1px solid var(--border-color);
-        border-left: 5px solid; /* Farbe wird inline gesetzt für Sections */
+        border-left: 5px solid;
+        /* Farbe wird inline gesetzt für Sections */
     }
 
-    .rules-body { padding: 20px; }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-    
-    h4 { color: #fff; margin-bottom: 10px; margin-top: 0; text-transform: uppercase; font-size: 0.95rem; opacity: 0.9; }
-    
-    ul { color: var(--text-muted); line-height: 1.6; padding-left: 20px; margin-top: 0; }
-    li { margin-bottom: 5px; }
-    strong { color: #e0e0e0; }
-
-    /* TABELLEN OPTIMIERUNG */
-    .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        margin-bottom: 20px;
-        background: #1a1a1a;
-        border-radius: 6px;
+    .rules-body {
+        padding: 20px;
     }
 
-    .rules-table {
-        width: 100%; border-collapse: collapse; min-width: 350px;
-        font-size: 0.9rem;
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
     }
-    .rules-table td {
-        padding: 10px 15px; border-bottom: 1px solid #333; color: var(--text-muted);
-    }
-    .rules-table tr:last-child td { border-bottom: none; }
-    .rules-table tr:hover { background: #222; }
 
-    /* Werte Styling */
-    .val { text-align: right; color: #fff !important; font-family: monospace; font-weight: bold; white-space: nowrap; }
-    .val-green { color: var(--success) !important; }
-    .val-red { color: var(--danger) !important; }
+    h4 {
+        color: #fff;
+        margin-bottom: 10px;
+        margin-top: 0;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
+    ul {
+        color: var(--text-muted);
+        line-height: 1.6;
+        padding-left: 20px;
+        margin-top: 0;
+    }
+
+    li {
+        margin-bottom: 5px;
+    }
+
+    strong {
+        color: #e0e0e0;
+    }
+
+    /* TABELLEN OPTIMIERUNG UND WERTE STYLING JETZT IN style.css */
 
     /* Admin Toolbar */
     .admin-toolbar {
-        position: fixed; bottom: 20px; right: 20px;
-        background: #222; padding: 10px; border-radius: 8px;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #222;
+        padding: 10px;
+        border-radius: 8px;
         border: 1px solid var(--border-color);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        display: flex; gap: 10px; z-index: 1000;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        display: flex;
+        gap: 10px;
+        z-index: 1000;
         align-items: center;
     }
 
     @media (max-width: 768px) {
-        .grid-2 { grid-template-columns: 1fr; gap: 20px; }
-        .rules-header h1 { font-size: 1.5rem; }
+        .grid-2 {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .rules-header h1 {
+            font-size: 1.5rem;
+        }
     }
 </style>
 
 <div class="container" style="max-width: 950px;">
-    
+
     <div class="rules-header">
         <h1 style="margin: 0; color: #fff;">📜 Infernus Regelwerk</h1>
         <div style="display: flex; gap: 10px;">
@@ -95,245 +119,94 @@
 
     <div id="rulesContent">
         {% if custom_content %}
-            {{ custom_content | safe }}
+        {{ custom_content | safe }}
         {% else %}
-            <div class="rules-card">
-                <h2 style="border-color: #ff9800; color: #ff9800;">1. Waffen & Aufsätze</h2>
-                <div class="rules-body">
-                    <div class="grid-2">
-                        <div>
-                            <h4>Erlaubte Waffen</h4>
-                            <ul>
-                                <li><strong>Sturmgewehre:</strong> M15, AK27, MXR 17, Maverick, Friedenstifter MK1</li>
-                                <li><strong>MPs:</strong> Dravec 45, Rk 9, Ryden 45K, Razor 9MM, Mpc 25</li>
-                                <li><strong>Pistolen:</strong> Jäger 45</li>
-                                <li><strong>Nahkampf:</strong> Standard Messer</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4>Granaten</h4>
-                            <ul>
-                                <li><strong>Primär:</strong> Splittergranate, Semtex</li>
-                                <li><strong>Taktik:</strong> Betäubung, Blend, Rauch</li>
-                            </ul>
+        <div class="rules-card">
+            <h2 style="border-color: #ff9800; color: #ff9800;">1. Waffen & Aufsätze</h2>
+            <div class="rules-body">
+                <div class="grid-2">
+                    <div>
+                        <h4>Erlaubte Waffen</h4>
+                        <ul>
+                            <li><strong>Sturmgewehre:</strong> M15, AK27, MXR 17, Maverick, Friedenstifter MK1</li>
+                            <li><strong>MPs:</strong> Dravec 45, Rk 9, Ryden 45K, Razor 9MM, Mpc 25</li>
+                            <li><strong>Pistolen:</strong> Jäger 45</li>
+                            <li><strong>Nahkampf:</strong> Standard Messer</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Granaten</h4>
+                        <ul>
+                            <li><strong>Primär:</strong> Splittergranate, Semtex</li>
+                            <li><strong>Taktik:</strong> Betäubung, Blend, Rauch</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
+                    <h4>Aufsätze</h4>
+                    <ul>
+                        <li style="color: var(--danger);">❌ <strong>Verboten:</strong> 16 Os Dichte Lauf, 19,5 Nebel
+                            Lauf, Zielsucher, Millimeter Scanner, Werfer (Unterlauf).</li>
+                        <li style="color: var(--success);">✅ <strong>Erlaubt:</strong> Alle anderen Visiere (< 1.5x),
+                                Schäfte, Griffe, Standard Magazine, Pufferfeder, Vollmantel, Überdruck. Prestige
+                                Aufsätze sind erlaubt.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="rules-card">
+            <h2 style="border-color: #2196f3; color: #2196f3;">2. Extras (Perks)</h2>
+            <div class="rules-body">
+                <div class="table-wrapper">
+                    <table class="rules-table">
+                        <tr>
+                            <td width="30%"><strong>Extra 1</strong></td>
+                            <td>Taktiksprinter, Gung Ho, Leichtgewicht, Ninja</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Extra 2</strong></td>
+                            <td>Flinke Hände, Technikmaske</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Extra 3</strong></td>
+                            <td>Gewandheit</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Wildcard</strong></td>
+                            <td>Extra Gier</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="rules-card">
+            <h2 style="border-color: #4caf50; color: #4caf50;">3. Maps & Skins</h2>
+            <div class="rules-body">
+                <div class="grid-2">
+                    <div>
+                        <h4>Map Pool</h4>
+                        <div style="column-count: 2; color: var(--text-muted); line-height: 1.8;">
+                            Blackheart<br>Colossus<br>Cortex<br>Den<br>Exposure<br>Express<br>Fate<br>
+                            Hijacked<br>Homestead<br>Odysseus<br>Raid<br>Scar<br>Standoff<br>The
+                            Forge<br>Toshin<br>Utopia
                         </div>
                     </div>
-
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
-                        <h4>Aufsätze</h4>
+                    <div>
+                        <h4>Erlaubte Skins</h4>
                         <ul>
-                            <li style="color: var(--danger);">❌ <strong>Verboten:</strong> 16 Os Dichte Lauf, 19,5 Nebel Lauf, Zielsucher, Millimeter Scanner, Werfer (Unterlauf).</li>
-                            <li style="color: var(--success);">✅ <strong>Erlaubt:</strong> Alle anderen Visiere (< 1.5x), Schäfte, Griffe, Standard Magazine, Pufferfeder, Vollmantel, Überdruck. Prestige Aufsätze sind erlaubt.</li>
+                            <li><strong>Jsoc:</strong> Mason (Starker Instinkt), Wei Lin (Fleißig)</li>
+                            <li><strong>Gilde:</strong> Grimm (Autonomie), Razor (Kampfgefahr)</li>
                         </ul>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="rules-card">
-                <h2 style="border-color: #2196f3; color: #2196f3;">2. Extras (Perks)</h2>
-                <div class="rules-body">
-                    <div class="table-wrapper">
-                        <table class="rules-table">
-                            <tr>
-                                <td width="30%"><strong>Extra 1</strong></td>
-                                <td>Taktiksprinter, Gung Ho, Leichtgewicht, Ninja</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Extra 2</strong></td>
-                                <td>Flinke Hände, Technikmaske</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Extra 3</strong></td>
-                                <td>Gewandheit</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Wildcard</strong></td>
-                                <td>Extra Gier</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="rules-card">
-                <h2 style="border-color: #4caf50; color: #4caf50;">3. Maps & Skins</h2>
-                <div class="rules-body">
-                    <div class="grid-2">
-                        <div>
-                            <h4>Map Pool</h4>
-                            <div style="column-count: 2; color: var(--text-muted); line-height: 1.8;">
-                                Blackheart<br>Colossus<br>Cortex<br>Den<br>Exposure<br>Express<br>Fate<br>
-                                Hijacked<br>Homestead<br>Odysseus<br>Raid<br>Scar<br>Standoff<br>The Forge<br>Toshin<br>Utopia
-                            </div>
-                        </div>
-                        <div>
-                            <h4>Erlaubte Skins</h4>
-                            <ul>
-                                <li><strong>Jsoc:</strong> Mason (Starker Instinkt), Wei Lin (Fleißig)</li>
-                                <li><strong>Gilde:</strong> Grimm (Autonomie), Razor (Kampfgefahr)</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="rules-card">
-                <h2 style="border-color: #e91e63; color: #e91e63; display:flex; justify-content:space-between;">
-                    4. Lobby Einstellungen 
-                    <span style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-top:4px;">4vs4 HC All S&D</span>
-                </h2>
-                <div class="rules-body">
-                    
-                    <div class="grid-2">
-                        <div class="table-wrapper">
-                            <table class="rules-table">
-                                <thead><tr><th colspan="2" style="text-align:left; color:#ff9800; padding:10px;">Spiel</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Rundenzeitlimit</td><td class="val">1 Min 30</td></tr>
-                                    <tr><td>Rundensieglimit</td><td class="val">10 Runden</td></tr>
-                                    <tr><td>2Vorsprungregel</td><td class="val">Aus</td></tr>
-                                    <tr><td>2Vorsprungregel max</td><td class="val">8 Runden</td></tr>
-                                    <tr><td>Rundenwechsel</td><td class="val">Jede Runde</td></tr>
-                                    <tr><td>Spiel Countdown</td><td class="val">45 Sek.</td></tr>
-                                    <tr><td>Runden Countdown</td><td class="val">10</td></tr>
-                                    <tr><td>Übungsrunde</td><td class="val val-green">An</td></tr>
-                                    <tr><td>Eingabewechsel</td><td class="val">Aus</td></tr>
-                                    <tr><td>Infopings zulassen</td><td class="val val-green">An</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="table-wrapper">
-                            <table class="rules-table">
-                                <thead><tr><th colspan="2" style="text-align:left; color:#ff9800; padding:10px;">Erweitert</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Bombentimer</td><td class="val">45 Sek.</td></tr>
-                                    <tr><td>Platzierungszeit</td><td class="val">5 sek</td></tr>
-                                    <tr><td>Entschärfungszeit</td><td class="val">7.5 Sek.</td></tr>
-                                    <tr><td>Lautloses Platzieren</td><td class="val val-green">An</td></tr>
-                                    <tr><td>Reset Platzieren</td><td class="val val-green">An</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <br>
-
-                    <div class="table-wrapper">
-                        <table class="rules-table">
-                            <thead><tr><th colspan="4" style="text-align:left; color:#ff9800; padding:10px;">Spieler</th></tr></thead>
-                            <tbody>
-                                <tr>
-                                    <td>Anzahl der Leben</td><td class="val">1 Leben</td>
-                                    <td>Waffe Aufstützen</td><td class="val">Aus</td>
-                                </tr>
-                                <tr>
-                                    <td>Max Gesundheit</td><td class="val val-red">20</td>
-                                    <td>Wiederbeleben zulassen</td><td class="val">Aus</td>
-                                </tr>
-                                <tr>
-                                    <td>Regeneration</td><td class="val val-red">Ohne</td>
-                                    <td>Gesundheit (Downed)</td><td class="val">40</td>
-                                </tr>
-                                <tr>
-                                    <td>Externe Ansicht</td><td class="val">Aus</td>
-                                    <td>Gesundheit nach Revive</td><td class="val">Halb 50</td>
-                                </tr>
-                                <tr>
-                                    <td>Taktiksprint</td><td class="val val-green">An</td>
-                                    <td>Verblutungszeit</td><td class="val">10 Sek.</td>
-                                </tr>
-                                <tr>
-                                    <td>Wiederbelebungsdauer</td><td class="val">2 Sek.</td>
-                                    <td>Aufgabeverzögerung</td><td class="val">1 Sek.</td>
-                                </tr>
-                                <tr>
-                                    <td>Teamwiederbelebung</td><td class="val">Unbegrenzt</td>
-                                    <td>Zeitlimit</td><td class="val">5 Sek.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <br>
-
-                    <div class="table-wrapper">
-                        <table class="rules-table">
-                            <thead><tr><th colspan="4" style="text-align:left; color:#ff9800; padding:10px;">Team</th></tr></thead>
-                            <tbody>
-                                <tr>
-                                    <td>Zuschauen</td><td class="val">Spielersicht</td>
-                                    <td>Einstiegsverzögerung</td><td class="val">Ohne</td>
-                                </tr>
-                                <tr>
-                                    <td>Ext. Zuschaueransicht</td><td class="val">Aus</td>
-                                    <td>Wellen Verzögerung</td><td class="val">Ohne</td>
-                                </tr>
-                                <tr>
-                                    <td>Abschusskamera</td><td class="val val-green">An</td>
-                                    <td>Verzögerung Suizid</td><td class="val">Ohne</td>
-                                </tr>
-                                <tr>
-                                    <td>Minikarte</td><td class="val">Aus</td>
-                                    <td>Einstieg erzwingen</td><td class="val val-green">An</td>
-                                </tr>
-                                <tr>
-                                    <td>Radar immer an</td><td class="val">Aus</td>
-                                    <td>Team Zuteilung</td><td class="val val-green">An</td>
-                                </tr>
-                                <tr>
-                                    <td>Waffenpings (Karte)</td><td class="val">Aus</td>
-                                    <td>Teambeschuss</td><td class="val val-green">An</td>
-                                </tr>
-                                <tr>
-                                    <td>Waffenpings (Kompass)</td><td class="val">Aus</td>
-                                    <td>Strafgrenze</td><td class="val">2 Kills</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <br>
-
-                    <div class="table-wrapper">
-                        <table class="rules-table">
-                            <thead><tr><th colspan="4" style="text-align:left; color:#ff9800; padding:10px;">Gameplay</th></tr></thead>
-                            <tbody>
-                                <tr>
-                                    <td>Hardcore</td><td class="val val-green">An</td>
-                                    <td>Serie nach Tod</td><td class="val">-</td>
-                                </tr>
-                                <tr>
-                                    <td>Nur Kopfschüsse</td><td class="val">Aus</td>
-                                    <td>Scorestreak Delay</td><td class="val">-</td>
-                                </tr>
-                                <tr>
-                                    <td>Gesundheit stehlen</td><td class="val">Aus</td>
-                                    <td>Bleibende Serien</td><td class="val">Aus</td>
-                                </tr>
-                                <tr>
-                                    <td>Feldausrüstung</td><td class="val">Aus</td>
-                                    <td>Mehrfache Serien</td><td class="val">Aus</td>
-                                </tr>
-                                <tr>
-                                    <td>Extras (Perks)</td><td class="val val-green">An</td>
-                                    <td>Kampfrufe</td><td class="val">Aus</td>
-                                </tr>
-                                <tr>
-                                    <td>Punkteserien</td><td class="val">Aus</td>
-                                    <td>Ansagerdialoge</td><td class="val">Aus</td>
-                                </tr>
-                                <tr>
-                                    <td>Serien nach Runde</td><td class="val">-</td>
-                                    <td>Dyn. Elemente</td><td class="val">Aus</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-            {% endif %}
+        {% include 'partials/_lobby_settings.html' %}
+        {% endif %}
     </div>
 </div>
 
@@ -341,8 +214,10 @@
 <div class="admin-toolbar">
     <span style="color: #aaa; font-size: 0.8rem;">Admin Mode</span>
     <button onclick="toggleEdit()" class="btn btn-secondary btn-small" id="editBtn">✏️ Bearbeiten</button>
-    <button onclick="saveContent()" class="btn btn-small" id="saveBtn" style="display: none; background: var(--success);">💾 Speichern</button>
-    <button onclick="resetContent()" class="btn btn-small" style="background: var(--danger);">Reset auf Original</button>
+    <button onclick="saveContent()" class="btn btn-small" id="saveBtn"
+        style="display: none; background: var(--success);">💾 Speichern</button>
+    <button onclick="resetContent()" class="btn btn-small" style="background: var(--danger);">Reset auf
+        Original</button>
 </div>
 
 <script>
@@ -353,7 +228,7 @@
     function toggleEdit() {
         const isEditable = contentDiv.isContentEditable;
         contentDiv.contentEditable = !isEditable;
-        
+
         if (!isEditable) {
             contentDiv.style.border = "2px dashed #b71c1c";
             contentDiv.style.background = "rgba(0,0,0,0.2)";
@@ -371,15 +246,15 @@
 
     async function saveContent() {
         const htmlContent = contentDiv.innerHTML;
-        
+
         try {
             const res = await fetch("{{ url_for('main.save_rules') }}", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ content: htmlContent })
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 alert("Regelwerk gespeichert!");
                 location.reload();
@@ -392,8 +267,8 @@
     }
 
     async function resetContent() {
-        if(!confirm("Wirklich auf das originale Hardcoded-Regelwerk zurücksetzen? Alle Änderungen gehen verloren.")) return;
-        
+        if (!confirm("Wirklich auf das originale Hardcoded-Regelwerk zurücksetzen? Alle Änderungen gehen verloren.")) return;
+
         await fetch("{{ url_for('main.reset_rules') }}", { method: "POST" });
         location.reload();
     }

@@ -229,9 +229,14 @@ class LeagueMatch(db.Model):
     lineup_a = db.Column(db.Text, default='[]') 
     lineup_b = db.Column(db.Text, default='[]')
     confirmed_a = db.Column(db.Boolean, default=False)
-    confirmed_a = db.Column(db.Boolean, default=False)
     confirmed_b = db.Column(db.Boolean, default=False)
     
+    # Drafts (Temporary storage for confirmation)
+    draft_a_scores = db.Column(db.Text, nullable=True)
+    draft_b_scores = db.Column(db.Text, nullable=True)
+    draft_a_lineup = db.Column(db.Text, nullable=True)
+    draft_b_lineup = db.Column(db.Text, nullable=True)
+
     # NEU: Ready Check Flags
     ready_a = db.Column(db.Boolean, default=False)
     ready_b = db.Column(db.Boolean, default=False)
@@ -247,6 +252,10 @@ class LeagueMatch(db.Model):
     def get_scores_a(self): return safe_json_load(self.scores_a)
     def get_scores_b(self): return safe_json_load(self.scores_b)
     def get_map_wins(self): return calculate_map_wins(self.get_scores_a(), self.get_scores_b())
+    def get_draft_lineup_a(self): return safe_json_load(self.draft_a_lineup)
+    def get_draft_lineup_b(self): return safe_json_load(self.draft_b_lineup)
+    def get_draft_scores_a(self): return safe_json_load(self.draft_a_scores)
+    def get_draft_scores_b(self): return safe_json_load(self.draft_b_scores)
 
     @property
     def team_a_clan(self):

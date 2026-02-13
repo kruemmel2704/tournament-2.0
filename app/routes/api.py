@@ -83,4 +83,14 @@ def cup_state(match_id):
 def league_state(match_id):
     m = LeagueMatch.query.get_or_404(match_id)
     active = m.team_a if m.state.endswith('_a') else (m.team_b if m.state.endswith('_b') else None)
-    return jsonify({'state':m.state, 'active_team':active, 'banned':m.get_banned(), 'picked':m.get_picked(), 'lobby_code':m.lobby_code, 'confirmed_a':m.confirmed_a, 'confirmed_b':m.confirmed_b})
+    return jsonify({
+        'state':m.state, 
+        'active_team':active, 
+        'banned':m.get_banned(), 
+        'picked':m.get_picked(), 
+        'lobby_code':m.lobby_code, 
+        'confirmed_a':m.confirmed_a, 
+        'confirmed_b':m.confirmed_b,
+        'has_draft_a': bool(m.draft_a_scores),
+        'has_draft_b': bool(m.draft_b_scores)
+    })

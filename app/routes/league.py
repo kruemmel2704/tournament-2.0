@@ -83,13 +83,20 @@ def handle_scoring_logic(match, form_data, user):
     if match.draft_a_scores and match.draft_b_scores:
         if match.draft_a_scores == match.draft_b_scores:
             match.scores_a = json.dumps(sa); match.scores_b = json.dumps(sb)
-            match.state = 'confirming' # In der Liga muss man noch das Lineup bestätigen
+            match.state = 'confirming' 
+            # Reset confirmations on new score submission
+            match.confirmed_a = False
+            match.confirmed_b = False
             return True, "Scores stimmen überein. Bitte Lineup bestätigen."
         else: 
             match.state = 'conflict'
+            match.confirmed_a = False
+            match.confirmed_b = False
             return False, "Konflikt: Ergebnisse stimmen nicht überein."
     else: 
         match.state = 'waiting_for_confirmation'
+        match.confirmed_a = False
+        match.confirmed_b = False
         return True, "Gespeichert. Warte auf Gegner."
 
 
@@ -298,8 +305,13 @@ def league_match_view(match_id):
                 match.lineup_b = match.draft_b_lineup
                 flash("Match erfolgreich beendet!", "success")
             else:
-                flash("Bestätigt. Warte auf Gegner...", "info")
+                flash("Lineup bestätigt. Warte auf Bestätigung des Gegners...", "info")
             db.session.commit()
+
+        elif 'report_conflict' in request.form:
+            match.state = 'conflict'
+            db.session.commit()
+            flash("Konflikt gemeldet! Ein Admin wird sich das ansehen.", "error")
             
         elif 'lobby_code' in request.form:
             match.lobby_code = request.form.get('lobby_code'); db.session.commit()
