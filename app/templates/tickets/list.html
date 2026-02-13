@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel" style="max-width: 1000px; margin: 40px auto; padding: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #4caf50; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.5em;">🎫</span> Support Tickets
+        </h2>
+        <a href="{{ url_for('tickets.create_ticket') }}" class="btn" style="background: #4caf50;">
+            + Neues Ticket
+        </a>
+    </div>
+
+    {% if tickets %}
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 2px solid #444;">
+                <th style="padding: 10px; text-align: left;">ID</th>
+                <th style="padding: 10px; text-align: left;">Titel</th>
+                <th style="padding: 10px; text-align: left;">Kategorie</th>
+                <th style="padding: 10px; text-align: left;">Status</th>
+                <th style="padding: 10px; text-align: left;">Letztes Update</th>
+                <th style="padding: 10px; text-align: right;">Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr style="border-bottom: 1px solid #333;">
+                <td style="padding: 10px; color: #888;">#{{ ticket.id }}</td>
+                <td style="padding: 10px;">
+                    <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}"
+                        style="color: white; font-weight: bold; text-decoration: none;">
+                        {{ ticket.title }}
+                    </a>
+                </td>
+                <td style="padding: 10px;">
+                    {% if ticket.category == 'conflict' %}
+                    <span style="color: #f44336;">🚨 Konflikt</span>
+                    {% elif ticket.category == 'bug' %}
+                    <span style="color: #ff9800;">🐛 Bug</span>
+                    {% else %}
+                    <span style="color: #aaa;">{{ ticket.category|title }}</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 10px;">
+                    {% if ticket.status == 'open' %}
+                    <span
+                        style="background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">OFFEN</span>
+                    {% elif ticket.status == 'in_progress' %}
+                    <span
+                        style="background: #2196f3; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">IN
+                        BEARBEITUNG</span>
+                    {% elif ticket.status == 'resolved' %}
+                    <span
+                        style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">GELÖST</span>
+                    {% elif ticket.status == 'closed' %}
+                    <span
+                        style="background: #555; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">GESCHLOSSEN</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 10px; color: #888; font-size: 0.9em;">
+                    {{ ticket.updated_at.strftime('%d.%m.%Y %H:%M') }}
+                </td>
+                <td style="padding: 10px; text-align: right;">
+                    <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}" class="btn-small"
+                        style="background: #333;">Ansehen</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: #888;">
+        <span style="font-size: 3em; display: block; margin-bottom: 10px;">📭</span>
+        Keine Tickets gefunden.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import League, LeagueMatch, User, Map
+from app.models import League, LeagueMatch, User, Map, Ticket
 from app.extensions import db
+from app.firebase_utils import send_push_notification
 import json
 from datetime import datetime
 from app.utils import get_current_time
@@ -67,6 +68,16 @@ def handle_scoring_logic(match, form_data, user):
     # ADMIN / MOD: Direkt speichern
     if user.is_admin or user.is_mod:
         match.scores_a = json.dumps(sa); match.scores_b = json.dumps(sb)
+        
+        # Admin Lineup Override
+        ala = form_data.get('admin_lineup_a')
+        alb = form_data.get('admin_lineup_b')
+        
+        if ala:
+            match.lineup_a = json.dumps([x.strip() for x in ala.split(',') if x.strip()])
+        if alb:
+            match.lineup_b = json.dumps([x.strip() for x in alb.split(',') if x.strip()])
+            
         match.state = 'finished'
         return True, "Admin-Save erfolgreich."
         
@@ -310,8 +321,41 @@ def league_match_view(match_id):
 
         elif 'report_conflict' in request.form:
             match.state = 'conflict'
-            db.session.commit()
-            flash("Konflikt gemeldet! Ein Admin wird sich das ansehen.", "error")
+            
+            # Create a conflict ticket automatically
+            try:
+                # Check if a ticket already exists for this match to avoid duplicates? 
+                # For now, create one per report action or user, but typically one per match conflict is enough.
+                # Let's just create one.
+                new_ticket = Ticket(
+                    title=f"Konflikt Match #{match.id}: {match.team_a} vs {match.team_b}",
+                    category='conflict',
+                    description=f"Konflikt gemeldet von {current_user.username}. Bitte Match überprüfen.",
+                    author_id=current_user.id,
+                    league_match_id=match.id
+                )
+                db.session.add(new_ticket)
+                db.session.commit()
+                
+                # Notify Admins about Conflict
+                try:
+                    admins = User.query.filter((User.is_admin == True) | (User.is_mod == True)).all()
+                    for admin in admins:
+                        if admin.fcm_token:
+                            send_push_notification(
+                                admin.fcm_token,
+                                f"Konflikt gemeldet!",
+                                f"Match #{match.id}: {match.team_a} vs {match.team_b}",
+                                data={'url': url_for('tickets.detail', ticket_id=new_ticket.id, _external=True)}
+                            )
+                except Exception as e:
+                    print(f"Error sending conflict notification: {e}")
+
+                flash("Konflikt gemeldet! Ticket wurde erstellt.", "warning")
+                return redirect(url_for('tickets.detail', ticket_id=new_ticket.id))
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Fehler beim Erstellen des Tickets: {e}", "error")
             
         elif 'lobby_code' in request.form:
             match.lobby_code = request.form.get('lobby_code'); db.session.commit()

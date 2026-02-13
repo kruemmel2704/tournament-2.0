@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel" style="max-width: 600px; margin: 40px auto; padding: 30px;">
+    <h2 style="color: #4caf50; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.5em;">✏️</span> Neues Ticket Erstellen
+    </h2>
+    <form method="POST">
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; color: #aaa; margin-bottom: 5px;">Titel</label>
+            <input type="text" name="title" required placeholder="Kurze Zusammenfassung..."
+                style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; color: #aaa; margin-bottom: 5px;">Kategorie</label>
+            <select name="category"
+                style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;">
+                <option value="general">Allgemeine Anfrage</option>
+                <option value="bug">Bug Report</option>
+                <option value="report">Spieler melden</option>
+                <option value="other">Sonstiges</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; color: #aaa; margin-bottom: 5px;">Beschreibung</label>
+            <textarea name="description" required rows="6"
+                placeholder="Bitte beschreibe dein Anliegen so genau wie möglich..."
+                style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('tickets.list_tickets') }}" class="btn" style="background: #555;">Abbrechen</a>
+            <button type="submit" class="btn" style="background: #4caf50; flex: 1;">Ticket Erstellen</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

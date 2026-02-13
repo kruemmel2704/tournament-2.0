@@ -31,6 +31,7 @@ def create_app():
     from app.routes.cup import cup_bp
     from app.routes.league import league_bp
     from app.routes.api import api_bp
+    from app.routes.tickets import tickets
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -39,5 +40,6 @@ def create_app():
     app.register_blueprint(cup_bp)
     app.register_blueprint(league_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(tickets)
 
     return app

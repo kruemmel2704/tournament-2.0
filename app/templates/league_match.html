@@ -552,157 +552,266 @@
         <p style="font-size: 0.8rem; color: #888; margin-top: 15px; text-align: center;">
             Bei Ablehnung wird der Status auf "Konflikt" gesetzt und ein Admin muss das Match prüfen.
         </p>
-        <div id="conflictSection" class="card"
-            style="display: none; border-left: 5px solid #d32f2f; background: rgba(211, 47, 47, 0.1);">
-            <h3 style="color: #d32f2f; margin-top: 0;">🚨 KONFLIKT</h3>
-            <p style="margin-bottom: 10px;">Ein Team hat das Lineup oder die Ergebnisse abgelehnt, oder die Ergebnisse
-                stimmen nicht überein.</p>
-            <p style="font-weight: bold; color: #fff;">Ein Admin muss dieses Match überprüfen.</p>
-            <p style="font-size: 0.9rem; color: #aaa;">Bitte wende dich an den Support oder warte auf einen Admin.</p>
-        </div>
+    </div> <!-- Close confirmSection -->
 
-        <div class="chat-container">
-            <div style="padding: 15px; border-bottom: 1px solid #333; background: #202020; font-weight: bold;">
-                💬 Match Chat
-            </div>
-            <div id="chatBox"></div>
-            <div class="chat-input-area">
-                <input type="text" id="msgInput" class="chat-input" placeholder="Nachricht..."
-                    onkeypress="handleEnter(event)">
-                <button onclick="sendMsg()" class="btn-small"
-                    style="background: #2196f3; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">➤</button>
-            </div>
-        </div>
+    <div id="conflictSection" class="card"
+        style="display: none; border-left: 5px solid #d32f2f; background: rgba(211, 47, 47, 0.1);">
+        <h3 style="color: #d32f2f; margin-top: 0;">🚨 KONFLIKT</h3>
+        <p style="margin-bottom: 10px;">Ein Team hat das Lineup oder die Ergebnisse abgelehnt, oder die Ergebnisse
+            stimmen nicht überein.</p>
+        <p style="font-weight: bold; color: #fff;">Ein Admin muss dieses Match überprüfen.</p>
+        <p style="font-size: 0.9rem; color: #aaa;">Bitte wende dich an den Support oder warte auf einen Admin.</p>
 
+        {% if current_user.is_admin or current_user.is_mod %}
+        <div
+            style="margin-top: 20px; border-top: 1px solid #d32f2f; padding-top: 20px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 4px;">
+            <h4 style="color: #ff9800; margin-top: 0;">🛡️ Admin-Bereich: Konfliktlösung</h4>
+
+            <!-- Comparison -->
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                <!-- Team A Draft -->
+                <div
+                    style="flex: 1; min-width: 300px; background: #222; padding: 10px; border-radius: 4px; border: 1px solid #444;">
+                    <h5 style="margin-top: 0; color: #aaa;">Eingabe von {{ match.team_a | strip_clan_tag }}</h5>
+                    {% set draft_a = match.get_draft_scores_a() %}
+                    {% if draft_a %}
+                    <div style="font-size: 0.9rem;">
+                        <strong>Scores:</strong><br>
+                        {% for i in range(5) %}
+                        Map {{i+1}}: {{ draft_a['a'][i] }} : {{ draft_a['b'][i] }}<br>
+                        {% endfor %}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.9rem;">
+                        <strong>Lineup:</strong><br>
+                        {{ match.get_draft_lineup_a() | join(', ') }}
+                    </div>
+                    {% else %}
+                    <em style="color: #666;">Keine Daten</em>
+                    {% endif %}
+                </div>
+
+                <!-- Team B Draft -->
+                <div
+                    style="flex: 1; min-width: 300px; background: #222; padding: 10px; border-radius: 4px; border: 1px solid #444;">
+                    <h5 style="margin-top: 0; color: #aaa;">Eingabe von {{ match.team_b | strip_clan_tag }}</h5>
+                    {% set draft_b = match.get_draft_scores_b() %}
+                    {% if draft_b %}
+                    <div style="font-size: 0.9rem;">
+                        <strong>Scores:</strong><br>
+                        {% for i in range(5) %}
+                        Map {{i+1}}: {{ draft_b['a'][i] }} : {{ draft_b['b'][i] }}<br>
+                        {% endfor %}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.9rem;">
+                        <strong>Lineup:</strong><br>
+                        {{ match.get_draft_lineup_b() | join(', ') }}
+                    </div>
+                    {% else %}
+                    <em style="color: #666;">Keine Daten</em>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resolution Form -->
+            <h4 style="margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">Konflikt beenden (Ergebnis
+                erzwingen)</h4>
+            <form method="POST">
+                <input type="hidden" name="submit_scores" value="true">
+
+                <table style="width:100%; margin-bottom: 10px;">
+                    <tr>
+                        <th style="text-align: left;">Map</th>
+                        <th style="text-align: center;">{{ match.team_a | strip_clan_tag }}</th>
+                        <th style="text-align: center;">{{ match.team_b | strip_clan_tag }}</th>
+                    </tr>
+                    {% for i in range(1, 6) %}
+                    <tr>
+                        <td>Runde {{ i }}</td>
+                        <td style="text-align: center;"><input type="number" name="score_a_{{ i }}" value="0"
+                                style="width: 50px; background: #333; color: white; border: 1px solid #555;"></td>
+                        <td style="text-align: center;"><input type="number" name="score_b_{{ i }}" value="0"
+                                style="width: 50px; background: #333; color: white; border: 1px solid #555;"></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <label>Lineup {{ match.team_a | strip_clan_tag }} (Kommagetrennt):</label>
+                        <input type="text" name="admin_lineup_a" placeholder="Spieler1, Spieler2..."
+                            style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Lineup {{ match.team_b | strip_clan_tag }} (Kommagetrennt):</label>
+                        <input type="text" name="admin_lineup_b" placeholder="Spieler1, Spieler2..."
+                            style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555;">
+                    </div>
+                </div>
+
+                <button class="btn" style="background: #d32f2f; width: 100%;">ERGEBNIS ERZWINGEN</button>
+            </form>
+        </div>
+        {% endif %}
     </div>
 
-    <script>
-        const matchId = {{ match.id }};
-        const currentUser = "{{ current_user.username }}";
-        const isAdmin = {{ 'true' if current_user.is_admin or current_user.is_mod else 'false' }};
+    <div class="chat-container">
+        <div style="padding: 15px; border-bottom: 1px solid #333; background: #202020; font-weight: bold;">
+            💬 Match Chat
+        </div>
+        <div id="chatBox"></div>
+        <div class="chat-input-area">
+            <input type="text" id="msgInput" class="chat-input" placeholder="Nachricht..."
+                onkeypress="handleEnter(event)">
+            <button onclick="sendMsg()" class="btn-small"
+                style="background: #2196f3; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">➤</button>
+        </div>
+    </div>
 
-        const statusHeadline = document.getElementById('statusHeadline');
-        const statusCard = document.getElementById('statusCard');
-        const votingSec = document.getElementById('votingSection');
-        const scoringSec = document.getElementById('scoringSection');
-        const confirmSec = document.getElementById('confirmSection');
-        const conflictSec = document.getElementById('conflictSection'); // NEU
-        const waitMsg = document.getElementById('waitMessage');
-        const lobbyDisplay = document.getElementById('lobbyCodeDisplay');
-        const chatBox = document.getElementById('chatBox');
+</div>
 
-        async function updateState() {
-            try {
-                // API FÜR LIGA MATCH
-                const res = await fetch(`/api/league_match/${matchId}/state`);
-                const data = await res.json();
+<script>
+    const matchId = {{ match.id }};
+    const currentUser = "{{ current_user.username }}";
+    const teamA = "{{ match.team_a }}";
+    const teamB = "{{ match.team_b }}";
+    const isAdmin = {{ 'true' if current_user.is_admin or current_user.is_mod else 'false' }};
 
-                let text = "";
-                let color = "#fbc02d";
-                const state = data.state;
+    const statusHeadline = document.getElementById('statusHeadline');
+    const statusCard = document.getElementById('statusCard');
+    const votingSec = document.getElementById('votingSection');
+    const scoringSec = document.getElementById('scoringSection');
+    const confirmSec = document.getElementById('confirmSection');
+    const conflictSec = document.getElementById('conflictSection'); // NEU
+    const waitMsg = document.getElementById('waitMessage');
+    const lobbyDisplay = document.getElementById('lobbyCodeDisplay');
+    const chatBox = document.getElementById('chatBox');
 
-                // Sections Reset
-                votingSec.style.display = 'none';
-                scoringSec.style.display = 'none';
-                confirmSec.style.display = 'none';
-                if (conflictSec) conflictSec.style.display = 'none';
+    async function updateState() {
+        try {
+            // API FÜR LIGA MATCH
+            const res = await fetch(`/api/league_match/${matchId}/state`);
+            const data = await res.json();
 
-                if (state.includes('ban')) {
-                    text = `🚫 BANN: ${data.active_team}`;
-                    color = "#d32f2f";
-                    votingSec.style.display = 'block';
-                } else if (state.includes('pick')) {
-                    text = `✅ PICK: ${data.active_team}`;
-                    color = "#1976d2";
-                    votingSec.style.display = 'block';
-                } else if (state === 'scoring_phase') {
-                    text = "📝 Ergebnisse & Lineup";
-                    color = "#ff9800";
-                    scoringSec.style.display = 'block';
-                } else if (state === 'confirming') {
-                    text = "⚠️ Auf Bestätigung warten";
-                    color = "#4caf50";
-                    confirmSec.style.display = 'block';
-                } else if (state === 'waiting_for_confirmation') {
-                    text = "⏳ Warte auf Eingaben...";
-                    color = "#ff9800";
-                    scoringSec.style.display = 'block';
-                    if (data.active_team) text = "⏳ Warte auf: " + data.active_team;
-                    if (data.has_draft_a && !data.has_draft_b) text = "✅ Team A bereit - Warte auf Team B";
-                    else if (!data.has_draft_a && data.has_draft_b) text = "✅ Team B bereit - Warte auf Team A";
-                } else if (state === 'finished') {
-                    text = "🏁 Match Beendet";
-                    color = "#4caf50";
-                    // Bei Finished kann man optional Scoring anzeigen (read-only)
-                    scoringSec.style.display = 'block';
-                } else if (state === 'conflict') {
-                    text = "🚨 KONFLIKT";
-                    color = "#d32f2f";
-                    if (conflictSec) conflictSec.style.display = 'block';
+            let text = "";
+            let color = "#fbc02d";
+            const state = data.state;
+
+            // Sections Reset
+            votingSec.style.display = 'none';
+            scoringSec.style.display = 'none';
+            confirmSec.style.display = 'none';
+            if (conflictSec) conflictSec.style.display = 'none';
+
+            if (state.includes('ban')) {
+                text = `🚫 BANN: ${data.active_team}`;
+                color = "#d32f2f";
+                votingSec.style.display = 'block';
+            } else if (state.includes('pick')) {
+                text = `✅ PICK: ${data.active_team}`;
+                color = "#1976d2";
+                votingSec.style.display = 'block';
+            } else if (state === 'scoring_phase') {
+                text = "📝 Ergebnisse & Lineup";
+                color = "#ff9800";
+                scoringSec.style.display = 'block';
+            } else if (state === 'confirming') {
+                text = "⚠️ Auf Bestätigung warten";
+                color = "#4caf50";
+                confirmSec.style.display = 'block';
+            } else if (state === 'waiting_for_confirmation') {
+                // Logic per User
+                color = "#ff9800";
+                scoringSec.style.display = 'block';
+
+                let myDraft = false;
+                if (currentUser === teamA) myDraft = data.has_draft_a;
+                else if (currentUser === teamB) myDraft = data.has_draft_b;
+
+                if (myDraft) {
+                    text = "✅ Eingaben gespeichert. Warte auf Gegner...";
+                    color = "#4caf50"; // Green-ish to indicate 'Done' for me
+                } else {
+                    text = "📝 Bitte Ergebnisse eintragen";
+                    color = "#ff9800"; // Orange to indicate action needed
                 }
 
-                // ... (rest unchanged)
-
-                // Voting Buttons Logic
-                if (state.includes('ban') || state.includes('pick')) {
-                    const amIActive = (data.active_team === currentUser) || isAdmin;
-                    waitMsg.style.display = amIActive ? 'none' : 'block';
-
-                    const buttons = document.querySelectorAll('#votingSection button');
-                    buttons.forEach(btn => {
-                        const mapName = btn.value;
-                        const isBanned = data.banned.includes(mapName);
-                        const isPicked = data.picked.includes(mapName);
-
-                        btn.classList.remove('is-banned', 'is-picked');
-                        if (isBanned) btn.classList.add('is-banned');
-                        if (isPicked) btn.classList.add('is-picked');
-                        btn.disabled = isBanned || isPicked || !amIActive;
-                    });
+                // Admin View
+                if (isAdmin) {
+                    text = `Admin Info: A=${data.has_draft_a ? 'Ready' : 'Wait'}, B=${data.has_draft_b ? 'Ready' : 'Wait'}`;
                 }
+            } else if (state === 'finished') {
+                text = "🏁 Match Beendet";
+                color = "#4caf50";
+                // Bei Finished kann man optional Scoring anzeigen (read-only)
+                scoringSec.style.display = 'block';
+            } else if (state === 'conflict') {
+                text = "🚨 KONFLIKT";
+                color = "#d32f2f";
+                if (conflictSec) conflictSec.style.display = 'block';
+            }
 
-                if (data.picked.length > 0) {
-                    data.picked.forEach((mapName, index) => {
-                        const slot = document.querySelector(`.map-slot-${index}`);
-                        if (slot) slot.innerText = mapName;
-                    });
-                }
+            // ... (rest unchanged)
 
-                if (lobbyDisplay) lobbyDisplay.innerText = data.lobby_code ? data.lobby_code : "...";
+            // Voting Buttons Logic
+            if (state.includes('ban') || state.includes('pick')) {
+                const amIActive = (data.active_team === currentUser) || isAdmin;
+                waitMsg.style.display = amIActive ? 'none' : 'block';
 
-            } catch (e) { }
-        }
+                const buttons = document.querySelectorAll('#votingSection button');
+                buttons.forEach(btn => {
+                    const mapName = btn.value;
+                    const isBanned = data.banned.includes(mapName);
+                    const isPicked = data.picked.includes(mapName);
 
-        async function sendMsg() {
-            const txt = document.getElementById('msgInput').value;
-            if (!txt) return;
-            // API FÜR LIGA CHAT
-            await fetch(`/api/league_match/${matchId}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt }) });
-            document.getElementById('msgInput').value = ''; loadChat();
-        }
+                    btn.classList.remove('is-banned', 'is-picked');
+                    if (isBanned) btn.classList.add('is-banned');
+                    if (isPicked) btn.classList.add('is-picked');
+                    btn.disabled = isBanned || isPicked || !amIActive;
+                });
+            }
 
-        function handleEnter(e) {
-            if (e.key === 'Enter') sendMsg();
-        }
+            if (data.picked.length > 0) {
+                data.picked.forEach((mapName, index) => {
+                    const slot = document.querySelector(`.map-slot-${index}`);
+                    if (slot) slot.innerText = mapName;
+                });
+            }
 
-        async function loadChat() {
-            try {
-                const res = await fetch(`/api/league_match/${matchId}/chat`);
-                const data = await res.json();
-                const oldHtml = chatBox.innerHTML;
-                const newHtml = data.map(m => {
-                    let style = m.is_me ? "background:#1976d2; align-self:flex-end;" : "background:#333; align-self:flex-start;";
-                    let badge = m.is_admin ? "🛡️ " : (m.is_mod ? "👮 " : "");
-                    return `<div style="${style} padding: 8px 12px; border-radius: 6px; max-width: 80%; word-wrap: break-word;">
+            if (lobbyDisplay) lobbyDisplay.innerText = data.lobby_code ? data.lobby_code : "...";
+
+        } catch (e) { }
+    }
+
+    async function sendMsg() {
+        const txt = document.getElementById('msgInput').value;
+        if (!txt) return;
+        // API FÜR LIGA CHAT
+        await fetch(`/api/league_match/${matchId}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: txt }) });
+        document.getElementById('msgInput').value = ''; loadChat();
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') sendMsg();
+    }
+
+    async function loadChat() {
+        try {
+            const res = await fetch(`/api/league_match/${matchId}/chat`);
+            const data = await res.json();
+            const oldHtml = chatBox.innerHTML;
+            const newHtml = data.map(m => {
+                let style = m.is_me ? "background:#1976d2; align-self:flex-end;" : "background:#333; align-self:flex-start;";
+                let badge = m.is_admin ? "🛡️ " : (m.is_mod ? "👮 " : "");
+                return `<div style="${style} padding: 8px 12px; border-radius: 6px; max-width: 80%; word-wrap: break-word;">
                             <div style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 2px;">${badge}${m.user}</div>
                             ${m.text}
                         </div>`;
-                }).join('');
-                if (oldHtml !== newHtml) { chatBox.innerHTML = newHtml; chatBox.scrollTop = chatBox.scrollHeight; }
-            } catch (e) { }
-        }
+            }).join('');
+            if (oldHtml !== newHtml) { chatBox.innerHTML = newHtml; chatBox.scrollTop = chatBox.scrollHeight; }
+        } catch (e) { }
+    }
 
-        setInterval(() => { updateState(); loadChat(); }, 3000);
-        updateState(); loadChat();
-    </script>
-    {% endblock %}
+    setInterval(() => { updateState(); loadChat(); }, 3000);
+    updateState(); loadChat();
+</script>
+{% endblock %}

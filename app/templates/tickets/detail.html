@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel" style="max-width: 800px; margin: 40px auto; padding: 30px;">
+    <div
+        style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 20px;">
+        <div>
+            <small style="color: #aaa;">Ticket #{{ ticket.id }} • {{ ticket.category|title }}</small>
+            <h2 style="color: #fff; margin: 5px 0;">{{ ticket.title }}</h2>
+            <div style="margin-top: 10px;">
+                {% if ticket.status == 'open' %}
+                <span
+                    style="background: #4caf50; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">OFFEN</span>
+                {% elif ticket.status == 'in_progress' %}
+                <span
+                    style="background: #2196f3; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">BEARBEITUNG</span>
+                {% elif ticket.status == 'resolved' %}
+                <span
+                    style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">GELÖST</span>
+                {% elif ticket.status == 'closed' %}
+                <span
+                    style="background: #555; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">GESCHLOSSEN</span>
+                {% endif %}
+
+                <span style="color: #888; font-size: 0.9em; margin-left: 10px;">Erstellt am {{
+                    ticket.created_at.strftime('%d.%m.%Y %H:%M') }} von {{ ticket.author.username }}</span>
+            </div>
+
+            {% if ticket.league_match_id %}
+            <div style="margin-top: 10px;">
+                <a href="{{ url_for('league.league_match_view', match_id=ticket.league_match_id) }}"
+                    style="color: #2196f3; text-decoration: none;">
+                    🔗 Zum verknüpften Match #{{ ticket.league_match_id }}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            {% if current_user.is_admin or current_user.is_mod or current_user.id == ticket.author_id %}
+            <form action="{{ url_for('tickets.change_status', ticket_id=ticket.id) }}" method="POST"
+                style="display: inline-block;">
+                <select name="status" onchange="this.form.submit()"
+                    style="padding: 5px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                    <option value="open" {% if ticket.status=='open' %}selected{% endif %}>Offen</option>
+                    <option value="in_progress" {% if ticket.status=='in_progress' %}selected{% endif %}>In Bearbeitung
+                    </option>
+                    <option value="resolved" {% if ticket.status=='resolved' %}selected{% endif %}>Gelöst</option>
+                    <option value="closed" {% if ticket.status=='closed' %}selected{% endif %}>Geschlossen</option>
+                </select>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <p style="color: #ddd; white-space: pre-wrap; margin: 0;">{{ ticket.description }}</p>
+    </div>
+
+    <h3 style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 20px;">Verlauf</h3>
+
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+        {% for message in ticket.messages %}
+        <div
+            style="background: {% if message.author.is_admin or message.author.is_mod %}rgba(211, 47, 47, 0.1){% else %}#222{% endif %}; padding: 15px; border-radius: 8px; border-left: 4px solid {% if message.author.is_admin or message.author.is_mod %}#d32f2f{% else %}#4caf50{% endif %};">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <strong
+                    style="color: {% if message.author.is_admin or message.author.is_mod %}#ff5252{% else %}#fff{% endif %};">
+                    {{ message.author.username }}
+                    {% if message.author.is_admin or message.author.is_mod %} <span
+                        style="font-size: 0.8em; background: #d32f2f; color: white; padding: 0 4px; border-radius: 3px;">STAFF</span>{%
+                    endif %}
+                </strong>
+                <small style="color: #666;">{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+            </div>
+            <p style="margin: 0; color: #ccc; white-space: pre-wrap;">{{ message.content }}</p>
+        </div>
+        {% else %}
+        <p style="color: #666; font-style: italic;">Keine Antworten bisher.</p>
+        {% endfor %}
+    </div>
+
+    {% if ticket.status != 'closed' %}
+    <form action="{{ url_for('tickets.reply', ticket_id=ticket.id) }}" method="POST">
+        <textarea name="content" required rows="4" placeholder="Antwort verfassen..."
+            style="width: 100%; padding: 15px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px;"></textarea>
+        <button type="submit" class="btn" style="background: #2196f3; float: right;">Antworten</button>
+    </form>
+    {% else %}
+    <div style="text-align: center; color: #888; padding: 20px; background: #222; border-radius: 4px;">
+        Dieses Ticket ist geschlossen.
+    </div>
+    {% endif %}
+
+    <div style="clear: both;"></div>
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('tickets.list_tickets') }}" style="color: #aaa; text-decoration: none;">&larr; Zurück zur
+            Übersicht</a>
+    </div>
+</div>
+{% endblock %}

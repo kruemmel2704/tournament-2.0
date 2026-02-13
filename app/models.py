@@ -309,3 +309,32 @@ class LeagueChatMessage(db.Model):
     timestamp = db.Column(db.DateTime, default=get_current_time)
     is_admin = db.Column(db.Boolean, default=False)
     is_mod = db.Column(db.Boolean, default=False)
+
+# --- TICKET SYSTEM ---
+class Ticket(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(50), default='open') # open, in_progress, resolved, closed
+    category = db.Column(db.String(50), default='general') # general, conflict, bug, report, other
+    
+    created_at = db.Column(db.DateTime, default=get_current_time)
+    updated_at = db.Column(db.DateTime, default=get_current_time, onupdate=get_current_time)
+    
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    league_match_id = db.Column(db.Integer, db.ForeignKey('league_match.id'), nullable=True) # Optional link to match
+    
+    # Relationships
+    author = db.relationship('User', backref='tickets', lazy=True)
+    match = db.relationship('LeagueMatch', backref='tickets', lazy=True)
+    messages = db.relationship('TicketMessage', backref='ticket', lazy=True, cascade="all, delete-orphan")
+
+class TicketMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_current_time)
+    
+    # Relationships
+    author = db.relationship('User', backref='ticket_messages', lazy=True)
