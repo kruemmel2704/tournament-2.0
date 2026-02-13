@@ -11,6 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.ico') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
@@ -36,7 +37,11 @@
 <body>
 
     <nav class="navbar">
-        <a href="{{ url_for('main.dashboard') }}" class="nav-brand">🔥 Infernus eSports League</a>
+        <a href="{{ url_for('main.dashboard') }}" class="nav-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo"
+                style="height: 45px; margin-right: 10px; vertical-align: middle;">
+            Infernus eSports League
+        </a>
         <div class="nav-links">
             {% if current_user.is_authenticated %}
             <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
