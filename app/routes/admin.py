@@ -23,7 +23,7 @@ def users_manager():
 @login_required
 def maps_manager():
     if not current_user.is_admin: return redirect(url_for('main.dashboard'))
-    return render_template('maps.html', active_maps=[m for m in Map.query.all() if not m.is_archived], archived_maps=[m for m in Map.query.all() if m.is_archived])
+    return render_template('admin/maps.html', active_maps=[m for m in Map.query.all() if not m.is_archived], archived_maps=[m for m in Map.query.all() if m.is_archived])
 
 @admin_bp.route('/create_admin', methods=['POST'])
 @login_required

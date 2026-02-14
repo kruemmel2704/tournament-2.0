@@ -33,7 +33,7 @@ def login():
             return redirect(url_for('main.dashboard'))
         
         flash('Login fehlgeschlagen. Bitte Daten prüfen.', 'error')
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 @auth_bp.route('/register_clan', methods=['GET', 'POST'])
 def register_clan():
@@ -95,7 +95,7 @@ def register_clan():
         flash('Clan erstellt! Du kannst dich nun mit dem Clan-Namen einloggen.', 'success')
         return redirect(url_for('auth.login'))
 
-    return render_template('register_clan.html')
+    return render_template('auth/register_clan.html')
 
 @auth_bp.route('/logout')
 @login_required

@@ -24,7 +24,7 @@ def create_cup():
         # Weiterleitung zu Schritt 2 (Kader wählen)
         return redirect(url_for('cup.setup_cup_rosters', cup_id=new_cup.id))
         
-    return render_template('create_cup.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
+    return render_template('cup/create.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
 
 # --- 2. KADER FESTLEGEN & MATCHES GENERIEREN (STEP 2) ---
 @cup_bp.route('/setup_cup_rosters/<int:cup_id>', methods=['GET', 'POST'])
@@ -81,7 +81,7 @@ def setup_cup_rosters(cup_id):
         return redirect(url_for('main.dashboard'))
 
     # WICHTIG: 'now' übergeben, damit das HTML prüfen kann, wer gebannt ist
-    return render_template('setup_cup_rosters.html', cup=cup, teams=teams_obj, now=get_current_time())
+    return render_template('cup/setup_rosters.html', cup=cup, teams=teams_obj, now=get_current_time())
 
 # --- 3. EINZELNES MATCH ANSEHEN ---
 @cup_bp.route('/cup_match/<int:match_id>', methods=['GET', 'POST'])
@@ -148,7 +148,7 @@ def cup_match_view(match_id):
 
         return redirect(url_for('cup.cup_match_view', match_id=match.id))
 
-    return render_template('cup_match.html', 
+    return render_template('cup/match.html', 
                            match=match, 
                            all_maps=Map.query.filter_by(is_archived=False).all(), 
                            picked=match.get_picked(),
@@ -204,7 +204,7 @@ def cup_details(cup_id):
                 else:
                     break
 
-    return render_template('cup_details.html', 
+    return render_template('cup/details.html', 
                            cup=cup, 
                            standings=sorted(standings.items(), key=lambda x: (x[1]['won_matches'], x[1]['own_score']), reverse=True),
                            visible_match_ids=visible_match_ids)

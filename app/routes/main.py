@@ -33,7 +33,7 @@ def setup():
     # Sicherheitscheck: Wenn schon ein Admin da ist, darf man hier nicht mehr hin
     if User.query.filter_by(is_admin=True).first():
         return redirect(url_for('main.dashboard'))
-    return render_template('setup.html')
+    return render_template('auth/setup.html')
 
 @main_bp.route('/setup', methods=['POST'])
 def do_setup():
@@ -72,7 +72,7 @@ def dashboard():
     # Wir holen alle Spieler, deren Bann-Zeit in der Zukunft liegt
     banned_members = TeamMember.query.filter(TeamMember.banned_until > datetime.now()).all()
 
-    return render_template('dashboard.html',
+    return render_template('dashboard/user.html',
                            active_tournaments=active_tournaments, archived_tournaments=archived_tournaments,
                            active_cups=active_cups, archived_cups=archived_cups,
                            active_leagues=active_leagues, archived_leagues=archived_leagues,
@@ -99,7 +99,7 @@ def users():
         User.is_clan_admin == False
     ).all()
 
-    return render_template('users.html', 
+    return render_template('admin/users.html', 
                            clans=clans, 
                            moderators=moderators, 
                            users_no_clan=users_no_clan,
@@ -164,7 +164,7 @@ def clan_dashboard():
     # Freie Agents (Kein Clan, kein Admin/Mod/Clan-Admin)
     free_agents = User.query.filter_by(clan_id=None, is_admin=False, is_mod=False, is_clan_admin=False).all()
     
-    return render_template('clan_dashboard.html', clan=my_clan, free_agents=free_agents)
+    return render_template('dashboard/clan.html', clan=my_clan, free_agents=free_agents)
 
 @main_bp.route('/clan/create_team', methods=['POST'])
 @login_required
@@ -277,7 +277,7 @@ def rules():
         try:
             with open(fp, 'r', encoding='utf-8') as f: content = json.load(f).get('content')
         except: pass
-    return render_template('rules.html', custom_content=content)
+    return render_template('main/rules.html', custom_content=content)
 
 @main_bp.route('/save_rules', methods=['POST'])
 @login_required
@@ -309,7 +309,7 @@ def player_list():
     # Durch .join(User) können wir auch nach Clan filtern/sortieren
     players = TeamMember.query.join(User).all()
     
-    return render_template('players_overview.html', players=players)
+    return render_template('main/players_overview.html', players=players)
 
 @main_bp.route('/ban_player/<int:member_id>', methods=['POST'])
 @login_required

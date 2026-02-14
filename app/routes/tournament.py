@@ -39,7 +39,7 @@ def tournament_tree(tournament_id):
             my_matches.sort(key=lambda x: x.round_number)
             next_match = my_matches[0]
 
-    return render_template('tournament_view.html', tournament=tournament, rounds=sorted_rounds, next_match=next_match)
+    return render_template('tournament/view.html', tournament=tournament, rounds=sorted_rounds, next_match=next_match)
 
 # --- PICK / BAN LOGIK (Kopie aus league.py wie gewünscht) ---
 def handle_pick_ban_logic(match, selected_map):
@@ -166,7 +166,7 @@ def create_tournament():
             prev = curr
             
         return redirect(url_for('main.dashboard'))
-    return render_template('create_tournament.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
+    return render_template('tournament/create.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
 
 @tournament_bp.route('/match/<int:match_id>', methods=['GET', 'POST'])
 @login_required
@@ -190,7 +190,7 @@ def match_view(match_id):
             match.lobby_code = request.form.get('lobby_code'); db.session.commit()
         return redirect(url_for('tournament.match_view', match_id=match.id))
         
-    return render_template('match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active)
+    return render_template('tournament/match.html', match=match, all_maps=Map.query.filter_by(is_archived=False).all(), banned=match.get_banned(), picked=match.get_picked(), active_team=active)
 
 @tournament_bp.route('/archive_tournament/<int:t_id>', methods=['POST'])
 @login_required

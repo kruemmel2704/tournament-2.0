@@ -80,3 +80,4 @@ app/static/logos/clan_1_0b199f13.png
 verify_logic_standalone.py
 verify_strip_tag.py
 app/routes/__pycache__/tickets.cpython-314.pyc
+.venv/

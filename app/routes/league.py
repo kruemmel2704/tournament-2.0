@@ -157,7 +157,7 @@ def create_league():
             
         db.session.commit()
         return redirect(url_for('main.dashboard'))
-    return render_template('create_league.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
+    return render_template('league/create.html', users=User.query.filter_by(is_admin=False, is_mod=False).all())
 
 @league_bp.route('/league/<int:league_id>')
 def league_details(league_id):
@@ -176,7 +176,7 @@ def league_details(league_id):
                 if wb>wa: s['won_matches']+=1
                 elif wa>wb: s['lost_matches']+=1
                 else: s['draw_matches']+=1
-    return render_template('league_details.html', league=league, standings=sorted(standings.items(), key=lambda x:x[1]['own_score'], reverse=True))
+    return render_template('league/details.html', league=league, standings=sorted(standings.items(), key=lambda x:x[1]['own_score'], reverse=True))
 
 
 from datetime import timedelta
@@ -370,7 +370,7 @@ def league_match_view(match_id):
     members_b = user_b.team_members if user_b else []
     # ----------------------------------------------------
 
-    return render_template('league_match.html', 
+    return render_template('league/match.html', 
                            match=match, 
                            all_maps=Map.query.filter_by(is_archived=False).all(), 
                            banned=match.get_banned(), 

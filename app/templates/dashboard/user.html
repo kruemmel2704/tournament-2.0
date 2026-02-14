@@ -15,6 +15,8 @@
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <a href="{{ url_for('main.rules') }}" class="btn btn-secondary btn-small"
                 style="background: #333; border: 1px solid #555;">📜 Regelwerk</a>
+            <a href="{{ url_for('tickets.list_tickets') }}" class="btn btn-secondary btn-small"
+                style="background: #333; border: 1px solid #555;">🎫 Tickets</a>
 
             {# --- NEU: Button für Spieler-Management (Admins & Mods) --- #}
             {% if current_user.is_admin or current_user.is_mod %}
